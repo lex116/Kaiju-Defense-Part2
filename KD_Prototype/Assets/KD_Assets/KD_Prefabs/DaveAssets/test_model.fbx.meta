@@ -1,0 +1,194 @@
+fileFormatVersion: 2
+guid: 40a054e3dc0719f42b06a229a806076f
+timeCreated: 1511604093
+licenseType: Free
+ModelImporter:
+  serializedVersion: 19
+  fileIDToRecycleName:
+    100000: Backpack
+    100002: gun
+    100004: head
+    100006: Head_joint
+    100008: hips
+    100010: ikHandle1
+    100012: ikHandle2
+    100014: ikHandle3
+    100016: ikHandle4
+    100018: L_arm
+    100020: L_arm_joint
+    100022: L_Elbow_joint
+    100024: L_Elbow_nurb
+    100026: L_foot_joint
+    100028: L_foot_nurb
+    100030: L_hand_joint
+    100032: L_Hand_rotation
+    100034: L_Hand_translation
+    100036: L_hip_nurb
+    100038: L_knee_joint
+    100040: L_Leg_joint
+    100042: L_Shoulder_nurb
+    100044: Legs
+    100046: Pelvis_joint
+    100048: R_arm
+    100050: R_arm_joint
+    100052: R_Elbow_joint
+    100054: R_Elbow_nurb
+    100056: R_foot_joint
+    100058: R_foot_nurb
+    100060: R_hand_joint
+    100062: R_Hand_rotation
+    100064: R_Hand_translation
+    100066: R_hip_nurb
+    100068: R_knee_curve
+    100070: R_knee_curve1
+    100072: R_knee_joint
+    100074: R_Leg_joint
+    100076: R_Shoulder_nurb
+    100078: Spine1_joint
+    100080: Spine2_joint
+    100082: Spine3_joint
+    100084: //RootNode
+    100086: Torso
+    100088: torso
+    100090: torso_joint
+    100092: waste1
+    100094: waste2
+    100096: waste3
+    100098: World
+    400000: Backpack
+    400002: gun
+    400004: head
+    400006: Head_joint
+    400008: hips
+    400010: ikHandle1
+    400012: ikHandle2
+    400014: ikHandle3
+    400016: ikHandle4
+    400018: L_arm
+    400020: L_arm_joint
+    400022: L_Elbow_joint
+    400024: L_Elbow_nurb
+    400026: L_foot_joint
+    400028: L_foot_nurb
+    400030: L_hand_joint
+    400032: L_Hand_rotation
+    400034: L_Hand_translation
+    400036: L_hip_nurb
+    400038: L_knee_joint
+    400040: L_Leg_joint
+    400042: L_Shoulder_nurb
+    400044: Legs
+    400046: Pelvis_joint
+    400048: R_arm
+    400050: R_arm_joint
+    400052: R_Elbow_joint
+    400054: R_Elbow_nurb
+    400056: R_foot_joint
+    400058: R_foot_nurb
+    400060: R_hand_joint
+    400062: R_Hand_rotation
+    400064: R_Hand_translation
+    400066: R_hip_nurb
+    400068: R_knee_curve
+    400070: R_knee_curve1
+    400072: R_knee_joint
+    400074: R_Leg_joint
+    400076: R_Shoulder_nurb
+    400078: Spine1_joint
+    400080: Spine2_joint
+    400082: Spine3_joint
+    400084: //RootNode
+    400086: Torso
+    400088: torso
+    400090: torso_joint
+    400092: waste1
+    400094: waste2
+    400096: waste3
+    400098: World
+    2300000: Backpack
+    2300002: gun
+    3300000: Backpack
+    3300002: gun
+    4300000: L_arm
+    4300002: R_arm
+    4300004: Torso
+    4300006: Legs
+    4300008: gun
+    4300010: Backpack
+    6400000: Backpack
+    6400002: gun
+    9500000: //RootNode
+    13700000: L_arm
+    13700002: Legs
+    13700004: R_arm
+    13700006: Torso
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 5
+    meshCompression: 0
+    addColliders: 1
+    importBlendShapes: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
