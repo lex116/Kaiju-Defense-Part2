@@ -12,6 +12,8 @@ public class TimeScaleAction
     public Unit ActingUnit;
     public Unit TargetUnit;
 
+    public bool wasActivated;
+
     public virtual void ActionEffect()
     {
         // Does something eventually

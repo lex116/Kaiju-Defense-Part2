@@ -8,7 +8,13 @@ public class ShootingState_Quick : StateMachineBehaviour
 
     public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
+        //AddQuickShot();
+    }
+
+    public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
         AddQuickShot();
+        Debug.Log(" adding a shot");
     }
 
     void AddQuickShot()

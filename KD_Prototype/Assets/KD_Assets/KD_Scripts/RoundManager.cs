@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,14 @@ public class RoundManager : MonoBehaviour
     public List<TimeScaleAction> TimeScaleOrder = new List<TimeScaleAction>();
     public int CurrentTime;
     [SerializeField]
+    List<TimeScaleAction> QueuedActions = new List<TimeScaleAction>();
+    [SerializeField]
     public TimeScaleAction[] ActionsToActivate;
+    int ActionsCount;
+    #endregion
+
+    #region RoundFields
+    int RoundCount = 0;
     #endregion
 
     void Awake()
@@ -36,15 +43,15 @@ public class RoundManager : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     {
-        if (Input.GetKeyDown(KeyCode.V))
-        {
-            EndUnitTurn();
-        }
+        //if (Input.GetKeyDown(KeyCode.V))
+        //{
+        //    EndUnitTurn();
+        //}
 
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            TimeScaleOrder.Add(null);
-        }
+        //if (Input.GetKeyDown(KeyCode.M))
+        //{
+        //    TimeScaleOrder.Add(null);
+        //}
 
         if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked)
         {
@@ -65,7 +72,7 @@ public class RoundManager : MonoBehaviour
     //Initial round set up
     void StartRound()
     {
-        SelectedUnit = null;
+        SelectedUnit = null; 
 
         SelectedUnitIndex = 0;
 
@@ -151,9 +158,9 @@ public class RoundManager : MonoBehaviour
     }
 
     // Finds all the actions that should be called this time unit
-    void FindNextActionsToActivate()
+    public void FindNextActionsToActivate()
     {
-        List<TimeScaleAction> QueuedActions = new List<TimeScaleAction>();
+        QueuedActions.Clear();
 
         foreach (TimeScaleAction x in TimeScaleOrder)
         {
@@ -167,15 +174,24 @@ public class RoundManager : MonoBehaviour
     }
 
     // Activates the actions that should be activated this time unit
-    void ActivateActions()
+    public void ActivateActions()
+    {
+        StartCoroutine(ActivateActionsRoutine());
+    }
+
+    IEnumerator ActivateActionsRoutine()
     {
         foreach (TimeScaleAction x in ActionsToActivate)
         {
             x.ActionEffect();
-            // Some type of wait until the effect resolves
+
+            while(x.ActingUnit.shooting.isFiring)
+            {
+                yield return new WaitForFixedUpdate();
+            }
         }
 
-        // Clear the ActionsToActivate array?
+        ActionsToActivate = null;
     }
 
     // Steps the timescale forward
