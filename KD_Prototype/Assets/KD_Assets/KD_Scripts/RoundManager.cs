@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,8 +9,12 @@ public class RoundManager : MonoBehaviour
     #region InitiativeFields
     public Unit SelectedUnit;
     public Unit[] AllUnits;
+    //Unit[] AllUnits;
     public int SelectedUnitIndex;
-    public Unit[] initiativeOrder;
+    //public Unit[] initiativeOrder;
+    [SerializeField]
+    List<Unit> initiativeOrder = new List<Unit>();
+    //public bool isCompletingActions;
     #endregion
 
     #region TimeScaleFields
@@ -21,12 +25,14 @@ public class RoundManager : MonoBehaviour
     List<TimeScaleAction> QueuedActions = new List<TimeScaleAction>();
     [SerializeField]
     public TimeScaleAction[] ActionsToActivate;
-    int ActionsCount;
     #endregion
 
     #region RoundFields
     int RoundCount = 0;
     #endregion
+
+    [SerializeField]
+    List<Unit> SuppressingUnits = new List<Unit>();
 
     void Awake()
     {
@@ -43,16 +49,6 @@ public class RoundManager : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     {
-        //if (Input.GetKeyDown(KeyCode.V))
-        //{
-        //    EndUnitTurn();
-        //}
-
-        //if (Input.GetKeyDown(KeyCode.M))
-        //{
-        //    TimeScaleOrder.Add(null);
-        //}
-
         if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -62,16 +58,32 @@ public class RoundManager : MonoBehaviour
     //Begin the inital round and set up, then call startRound
     void StartBattle()
     {
-        AllUnits = FindObjectsOfType<Unit>();
-
-        initiativeOrder = AllUnits.OrderByDescending(x => x.InitiativeValue).ToArray();
-
         StartRound();
     }
 
     //Initial round set up
     void StartRound()
     {
+        AllUnits = null;
+
+        Unit[] tempUnits;
+
+        tempUnits = null;
+
+        tempUnits = FindObjectsOfType<Unit>();
+
+        AllUnits = tempUnits.OrderByDescending(x => x.InitiativeValue).ToArray();
+
+        initiativeOrder.Clear();
+
+        foreach (Unit x in AllUnits)
+        {
+            if (x.isDead != true)
+            {
+                initiativeOrder.Add(x);
+            }
+        }
+
         SelectedUnit = null; 
 
         SelectedUnitIndex = 0;
@@ -87,6 +99,14 @@ public class RoundManager : MonoBehaviour
         }
 
         SelectedUnit.ToggleControl(true);
+
+        foreach (Unit x in AllUnits)
+        {
+            if (x.isDead == true)
+            {
+                Destroy(x.gameObject);
+            }
+        }
     }
 
     //Activate the unit to be controlled
@@ -100,37 +120,54 @@ public class RoundManager : MonoBehaviour
     {
         SelectedUnitIndex++;
 
-        if (SelectedUnitIndex >= initiativeOrder.Length)
+        if (SelectedUnitIndex >= initiativeOrder.Count)
         {
-            SelectedUnitIndex = 0;
+            EndRound();
         }
 
-        initiativeOrder = initiativeOrder.ToArray();
-
-        SelectedUnit = initiativeOrder[SelectedUnitIndex];
-
-        for (int i = 0; i < initiativeOrder.Length; i++)
+        else
         {
-            if (initiativeOrder[i] != SelectedUnit)
+            if (initiativeOrder[SelectedUnitIndex].isDead == false)
             {
-                initiativeOrder[i].ToggleControl(false);
+                SelectedUnit = initiativeOrder[SelectedUnitIndex];
+
+                for (int i = 0; i < initiativeOrder.Count; i++)
+                {
+                    if (initiativeOrder[i] != SelectedUnit)
+                    {
+                        initiativeOrder[i].ToggleControl(false);
+                    }
+                }
+
+                ActivateNewUnit();
+            }
+
+            else
+            {
+                SelectNextUnit();
             }
         }
-
-        ActivateNewUnit();
     }
 
     //Any clean up, then call RoundProcess
     void EndRound()
     {
+        ClearOldActions();
+        Debug.Log("round end");
 
+        StartRound();
     }
 
     //get next unit, move time scale forward
-    void EndUnitTurn()
+    public void EndUnitTurn()
     {
-        SelectNextUnit();
-        IncrememntTime();
+        FindNextActionsToActivate();
+    }
+
+    //activate all remaining actions
+    void ActivateRemainingActions()
+    {
+        Debug.Log("Round Finished");
     }
 
     #endregion
@@ -140,6 +177,8 @@ public class RoundManager : MonoBehaviour
     // Adds an action to the list to be called later, sets it priority
     public void AddAction(TimeScaleAction TSA_ToBeAdded)
     {
+        SelectedUnit.IsBeingControlled = false;
+
         int priorityOffset = 0;
 
         TSA_ToBeAdded.timeScalePosition = TSA_ToBeAdded.timeScaleOffSet + CurrentTime;
@@ -155,6 +194,8 @@ public class RoundManager : MonoBehaviour
         TSA_ToBeAdded.timeScalePriority = priorityOffset;
 
         TimeScaleOrder.Add(TSA_ToBeAdded);
+
+        EndUnitTurn();
     }
 
     // Finds all the actions that should be called this time unit
@@ -171,6 +212,8 @@ public class RoundManager : MonoBehaviour
         }
 
         ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
+
+        ActivateActions();
     }
 
     // Activates the actions that should be activated this time unit
@@ -189,9 +232,22 @@ public class RoundManager : MonoBehaviour
             {
                 yield return new WaitForFixedUpdate();
             }
+
+            yield return new WaitForSeconds(1f);
         }
 
         ActionsToActivate = null;
+
+
+        //Temp
+        SelectNextUnit();
+        IncrememntTime();
+    }
+
+    //Removes used up actions from the timescale
+    public void ClearOldActions()
+    {
+        TimeScaleOrder.RemoveAll(TimeScaleAction => TimeScaleAction.timeScalePosition <= CurrentTime);
     }
 
     // Steps the timescale forward
@@ -200,4 +256,10 @@ public class RoundManager : MonoBehaviour
         CurrentTime++;
     }
     #endregion
+
+    // Activates the units that need supression fire
+    public void ActivateSuppressionCheck()
+    {
+
+    }
 }

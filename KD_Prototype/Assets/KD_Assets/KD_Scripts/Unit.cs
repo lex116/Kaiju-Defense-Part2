@@ -31,6 +31,8 @@ public class Unit : MonoBehaviour, IDamagable
     public int UnitStat_Nerve;
     #endregion
 
+    public bool isDead;
+
     [SerializeField]
     public Weapon currentWeapon;
 
@@ -38,6 +40,14 @@ public class Unit : MonoBehaviour, IDamagable
     //public int Calculated_WeaponDamage;
     public float Calculated_WeaponAccuracy;
     #endregion
+
+
+
+    //Suppress fire fields
+    public Unit suppressTarget;
+    public bool isSuppressing;
+
+
 
     public void Awake()
     {
@@ -64,6 +74,11 @@ public class Unit : MonoBehaviour, IDamagable
         {
             PlayerInput();
         }
+
+        if (isSuppressing)
+        {
+            SuppressFire();
+        }
     }
 
     public void PlayerInput()
@@ -84,7 +99,12 @@ public class Unit : MonoBehaviour, IDamagable
         }
         if (Input.GetKeyDown(KeyCode.P))
         {
-            ShootingStateMachine.SetInteger("ShootingMode", 3);
+            PaintTarget();
+
+            if (suppressTarget != null)
+            {
+                ShootingStateMachine.SetInteger("ShootingMode", 3);
+            }
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
@@ -95,21 +115,66 @@ public class Unit : MonoBehaviour, IDamagable
 
     public virtual void TakeDamage(int Damage)
     {
-        UnitStat_HitPoints = UnitStat_HitPoints - Damage;
-        if (UnitStat_HitPoints <= 0)
+        if (isDead == false)
         {
-            DIE();
+            UnitStat_HitPoints = UnitStat_HitPoints - Damage;
+            if (UnitStat_HitPoints <= 0)
+            {
+                DIE();
+            }
         }
     }
     
     public void DIE()
     {
         Debug.Log(this.gameObject.name + "has died");
-        Destroy(this.gameObject);
+
+        isDead = true;
+
+        if (RM.SelectedUnit == this)
+        {
+            RM.EndUnitTurn();
+        }
     } 
 
     void CalculateWeaponStats()
     {
         Calculated_WeaponAccuracy = UnitStat_Accuracy * currentWeapon.Accuracy;
-    } 
+    }
+
+
+
+    //Select the target to suppress
+    public void PaintTarget()
+    {
+        suppressTarget = null;
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(Camera.transform.position, Camera.transform.forward, out hit, 100f))
+        {
+            Unit tempUnit;
+
+            tempUnit = hit.collider.GetComponent<Unit>();
+
+            if (tempUnit != null)
+            {
+                suppressTarget = tempUnit;
+            }
+        }
+    }
+
+
+    public void ToggleSuppressFire(bool toggle)
+    {
+        isSuppressing = toggle;
+    }
+
+
+    public void SuppressFire()
+    {
+        //TEMP
+        // change to only rotate on the y for the body and the on the x for the camera
+        transform.LookAt(suppressTarget.transform);
+    }
 } 

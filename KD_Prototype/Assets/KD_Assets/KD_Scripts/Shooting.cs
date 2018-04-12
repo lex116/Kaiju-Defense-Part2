@@ -7,7 +7,6 @@ public class Shooting : MonoBehaviour
 {
     ReferenceManager referenceManager;
     internal Weapon [] Weapons;
-    internal bool IsAiming;
 
     Weapon currentWeapon;
 
@@ -17,14 +16,13 @@ public class Shooting : MonoBehaviour
     public int BurstsFired = 0;
 
     public bool isFiring;
-    //float AimModifier;
 
     public GameObject DamageCube;
 
     // Update is called once per frame
     void Update () 
     {
-        //DetectAccuracy();
+
 	}
 
     #region Thomas Shooting
@@ -107,11 +105,14 @@ public class Shooting : MonoBehaviour
 
         if (!isFiring)
         {
+            ShotsFired = 0;
+            BurstsFired = 0;
+
             isFiring = true;
             StartCoroutine(TestShootingRoutine());
         }
     }
-
+    
     IEnumerator TestShootingRoutine()
     {
         #region Fields
@@ -144,8 +145,6 @@ public class Shooting : MonoBehaviour
                     {
                         if (objectToBeDamaged != null)
                         {
-                            //Debug.Log("Hit" + hit.collider.gameObject.name);
-
                             objectToBeDamaged.TakeDamage(unit.currentWeapon.Damage);
                         }
 
@@ -174,8 +173,5 @@ public class Shooting : MonoBehaviour
         }
 
         isFiring = false;
-
-        ShotsFired = 0;
-        BurstsFired = 0;
     }
 }
