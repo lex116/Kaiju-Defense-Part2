@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Unit : MonoBehaviour, IDamagable
-{ 
+{
+    #region Component Fields
     [HideInInspector]
     KD_CharacterController KD_CC;
     public Vehicle pilotedVehicle;
-    public int InitiativeValue;
     public Shooting shooting;
     public bool IsBeingControlled;
-    public Animator ShootingStateMachine; 
+    public Animator ShootingStateMachine;
+    //This doesnt do anything but it could if we change the way targetting works
     public Unit TargetUnit;
+    public GameObject AimingNode;
     public GameObject Camera;
-
     RoundManager RM;
+    [SerializeField]
+    public Weapon currentWeapon;
+    public Unit suppressTarget;
+    #endregion
 
     #region Unit Stats
+    public int InitiativeValue;
     int UnitStat_HitPoints = 5;
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
@@ -29,26 +35,18 @@ public class Unit : MonoBehaviour, IDamagable
     //public int UnitStat_Aptitude; ???
     public int UnitStat_VisualRange;
     public int UnitStat_Nerve;
-    #endregion
-
     public bool isDead;
-
-    [SerializeField]
-    public Weapon currentWeapon;
+    public Vector3 movementPos;
+    public float movementPointsRemaining;
+    public bool hasNoMovementRemaining;
+    #endregion
 
     #region Calculated Weapon Stats
     //public int Calculated_WeaponDamage;
     public float Calculated_WeaponAccuracy;
     #endregion
 
-
-
-    //Suppress fire fields
-    public Unit suppressTarget;
-    public bool isSuppressing;
-
-
-
+    #region Utility + Setup Methods
     public void Awake()
     {
         KD_CC = GetComponent<KD_CharacterController>();
@@ -59,12 +57,14 @@ public class Unit : MonoBehaviour, IDamagable
 
         currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
         //currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
+
+        movementPos = this.transform.position;
     }
 
     public void ToggleControl(bool toggle)
     {
-        KD_CC.IsBeingControlled = toggle;
-        KD_CC.playerCamera.SetActive(toggle);
+        //KD_CC.AimingNode.SetActive(toggle);
+        Camera.SetActive(toggle);
         IsBeingControlled = toggle;
     }
 
@@ -73,11 +73,7 @@ public class Unit : MonoBehaviour, IDamagable
         if (IsBeingControlled)
         {
             PlayerInput();
-        }
-
-        if (isSuppressing)
-        {
-            SuppressFire();
+            SpendMovement();
         }
     }
 
@@ -108,11 +104,12 @@ public class Unit : MonoBehaviour, IDamagable
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
-            RM.FindNextActionsToActivate();
-            RM.ActivateActions();
+            RM.EndUnitTurn();
         }
     }
+    #endregion
 
+    #region Combat Methods
     public virtual void TakeDamage(int Damage)
     {
         if (isDead == false)
@@ -124,7 +121,7 @@ public class Unit : MonoBehaviour, IDamagable
             }
         }
     }
-    
+
     public void DIE()
     {
         Debug.Log(this.gameObject.name + "has died");
@@ -142,8 +139,6 @@ public class Unit : MonoBehaviour, IDamagable
         Calculated_WeaponAccuracy = UnitStat_Accuracy * currentWeapon.Accuracy;
     }
 
-
-
     //Select the target to suppress
     public void PaintTarget()
     {
@@ -151,7 +146,7 @@ public class Unit : MonoBehaviour, IDamagable
 
         RaycastHit hit;
 
-        if (Physics.Raycast(Camera.transform.position, Camera.transform.forward, out hit, 100f))
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
         {
             Unit tempUnit;
 
@@ -164,17 +159,67 @@ public class Unit : MonoBehaviour, IDamagable
         }
     }
 
-
-    public void ToggleSuppressFire(bool toggle)
+    public void TrackSuppressTarget()
     {
-        isSuppressing = toggle;
-    }
-
-
-    public void SuppressFire()
-    {
-        //TEMP
-        // change to only rotate on the y for the body and the on the x for the camera
+        //Rotate the body to face the target
         transform.LookAt(suppressTarget.transform);
+
+        Vector3 bodyEulerAngles = transform.rotation.eulerAngles;
+        bodyEulerAngles.x = 0;
+        bodyEulerAngles.z = 0;
+
+        transform.rotation = Quaternion.Euler(bodyEulerAngles);
+
+        //Rotate the camera to face the target
+        AimingNode.transform.LookAt(suppressTarget.transform);
+
+        Vector3 camEulerAngles = AimingNode.transform.rotation.eulerAngles;
+        bodyEulerAngles.y = 0;
+        bodyEulerAngles.z = 0;
+
+        AimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
     }
+
+    public void SuppressionUpdate()
+    {
+        TrackSuppressTarget();
+
+        bool losCheck = false;
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+        {
+            if (suppressTarget == hit.collider.GetComponent<Unit>())
+            {
+                losCheck = true;
+            }
+
+            else
+            {
+                losCheck = false;
+            }
+
+        }
+
+        if (shooting.isFiring == false && losCheck == true)
+        {
+            shooting.TestShooting();
+        }
+    }
+
+    public void SpendMovement()
+    {
+        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPos.x);
+        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.y - movementPos.y);
+        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPos.z);
+
+        movementPos = this.transform.position;
+
+        if (movementPointsRemaining <= 0)
+        {
+            KD_CC.cantMove = true;
+        }
+    }
+    #endregion
 } 

@@ -133,11 +133,11 @@ public class Shooting : MonoBehaviour
                 float randomZVector = UnityEngine.Random.Range((1f - unit.currentWeapon.Accuracy), ((1f - unit.currentWeapon.Accuracy) * -1));
 
                 DirectionToFire =
-                    unit.Camera.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
+                    unit.AimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
 
                 RaycastHit hit;
 
-                if (Physics.Raycast(unit.Camera.transform.position, DirectionToFire, out hit, unit.currentWeapon.Range))
+                if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out hit, unit.currentWeapon.Range))
                 {
                     objectToBeDamaged = hit.collider.gameObject.GetComponent<IDamagable>();
 
@@ -150,7 +150,7 @@ public class Shooting : MonoBehaviour
 
                         Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));
 
-                        Debug.DrawRay(unit.Camera.transform.position, DirectionToFire * unit.currentWeapon.Range, Color.red, 1.5f);
+                        Debug.DrawRay(unit.AimingNode.transform.position, DirectionToFire * unit.currentWeapon.Range, Color.red, 1.5f);
                     }
                 }
                 #endregion

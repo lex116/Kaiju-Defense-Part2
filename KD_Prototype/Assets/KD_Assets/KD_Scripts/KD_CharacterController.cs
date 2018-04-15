@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class KD_CharacterController : MonoBehaviour
 {
-    public bool IsBeingControlled;
+    public bool cantMove;
 
     #region MouseFields
-    public GameObject playerCamera;
+    public GameObject AimingNode;
     float mouseSensitivity = 1;
     float xAxisClamp = 0.0f;
     public float xRotMaxUp = -90;
@@ -32,11 +32,12 @@ public class KD_CharacterController : MonoBehaviour
     // Use this for every frame jolly good tip tip
     public void InputUpdate()
     {
-        if (IsBeingControlled)
+        if (!cantMove)
         {
-            RotateCamera();
             MovePlayer();
         }
+
+        RotateCamera();
 
         GroundCheck();
     }
@@ -52,7 +53,7 @@ public class KD_CharacterController : MonoBehaviour
 
         xAxisClamp -= rotAmountY;
 
-        Vector3 targetRotCam = playerCamera.transform.rotation.eulerAngles;
+        Vector3 targetRotCam = AimingNode.transform.rotation.eulerAngles;
         Vector3 targetRotBody = transform.rotation.eulerAngles;
 
         targetRotCam.x -= rotAmountY;
@@ -72,7 +73,7 @@ public class KD_CharacterController : MonoBehaviour
             targetRotCam.x = -3 * xRotMaxUp;
         }
 
-        playerCamera.transform.rotation = Quaternion.Euler(targetRotCam);
+        AimingNode.transform.rotation = Quaternion.Euler(targetRotCam);
         transform.rotation = Quaternion.Euler(targetRotBody);
     }
 

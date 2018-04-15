@@ -7,11 +7,16 @@ public class Action_SuppressShot : TimeScaleAction
     public Action_SuppressShot()
     {
         actionName = "Suppress Shot";
-        timeScaleOffSet = 1;
+        //timeScaleOffSet = 1;
+        timeScaleOffSet = 0;
     }
 
     public override void ActionEffect()
     {
-        ActingUnit.shooting.TestShooting();
+        //Cinematic that shows the suppressor is targetting the suppress target?
+
+        Debug.Log("Suppression Begginning");
+
+        ActingUnit.ShootingStateMachine.SetInteger("ShootingMode", 4);
     }
 }

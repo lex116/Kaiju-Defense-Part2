@@ -11,6 +11,11 @@ public class ShootingState_Aimed : StateMachineBehaviour
         AddAimedShot();
     }
 
+    public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
+    {
+        animator.SetInteger("ShootingMode", 0);
+    }
+
     void AddAimedShot()
     {
         RoundManager RM = FindObjectOfType<RoundManager>();
