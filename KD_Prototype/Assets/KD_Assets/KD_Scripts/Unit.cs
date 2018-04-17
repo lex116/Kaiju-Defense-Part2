@@ -37,6 +37,7 @@ public class Unit : MonoBehaviour, IDamagable
     public int UnitStat_Nerve;
     public bool isDead;
     public Vector3 movementPos;
+    float startingMovementPoints = 75;
     public float movementPointsRemaining;
     public bool hasNoMovementRemaining;
     #endregion
@@ -59,6 +60,7 @@ public class Unit : MonoBehaviour, IDamagable
         //currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
 
         movementPos = this.transform.position;
+        movementPointsRemaining = startingMovementPoints;
     }
 
     public void ToggleControl(bool toggle)
@@ -211,7 +213,7 @@ public class Unit : MonoBehaviour, IDamagable
     public void SpendMovement()
     {
         movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPos.x);
-        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.y - movementPos.y);
+        //movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.y - movementPos.y);
         movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPos.z);
 
         movementPos = this.transform.position;
@@ -220,6 +222,12 @@ public class Unit : MonoBehaviour, IDamagable
         {
             KD_CC.cantMove = true;
         }
+    }
+
+    public void ResetMovement()
+    {
+        movementPointsRemaining = startingMovementPoints;
+        hasNoMovementRemaining = false;
     }
     #endregion
 } 

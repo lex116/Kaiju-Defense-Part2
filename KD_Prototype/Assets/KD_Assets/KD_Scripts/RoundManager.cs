@@ -65,6 +65,7 @@ public class RoundManager : MonoBehaviour
         OrderUnitsByInitiative();
         DestroyDeadUnits();
         SelectTheFirstUnit();
+        ResetUnitMovement();
     }
     #region Start Round Methods
     //2a. Find all units in the scene, order them by initiative ignoring the dead units
@@ -121,6 +122,15 @@ public class RoundManager : MonoBehaviour
         }
 
         SelectedUnit.ToggleControl(true);
+    }
+
+    //2d. Restore all movement points to all units and reset can move bool
+    void ResetUnitMovement()
+    {
+        foreach (Unit x in initiativeOrder)
+        {
+            x.ResetMovement();
+        }
     }
     #endregion
 
