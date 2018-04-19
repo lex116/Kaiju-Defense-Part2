@@ -210,6 +210,12 @@ public class RoundManager : MonoBehaviour
     //Selects next unit in the initiative order
     void SelectNextUnit()
     {
+        StartCoroutine(SelectNextUnitRoutine());
+    }
+    IEnumerator SelectNextUnitRoutine()
+    {
+        yield return new WaitForSeconds(1f);
+
         SelectedUnitIndex++;
 
         Debug.Log("unit index: " + SelectedUnitIndex);
@@ -277,7 +283,7 @@ public class RoundManager : MonoBehaviour
     {
         //ActivateRemainingActions();
         ClearOldActions();
-        //ResetAllUnitStateMachines();
+        ResetAllUnitStateMachines();
         Debug.Log("round end");
 
         StartRound();
@@ -298,6 +304,8 @@ public class RoundManager : MonoBehaviour
         foreach (Unit x in initiativeOrder)
         {
             x.ShootingStateMachine.SetInteger("ShootingMode", 0);
+            x.ShootingStateMachine.SetBool("isSPR", false);
+            x.ShootingStateMachine.SetBool("Reset", true);
         }
     }
     #endregion

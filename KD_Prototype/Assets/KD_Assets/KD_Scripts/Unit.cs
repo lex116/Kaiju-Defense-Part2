@@ -1,9 +1,22 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
 
 public class Unit : MonoBehaviour, IDamagable
 {
+    //temp 
+    public enum DemoWeapon
+    {
+        Pistol,
+        Shotgun,
+        MachineGun
+    }
+
+    [SerializeField]
+    public DemoWeapon selectedWeapon;
+
     #region Component Fields
     [HideInInspector]
     KD_CharacterController KD_CC;
@@ -19,11 +32,16 @@ public class Unit : MonoBehaviour, IDamagable
     [SerializeField]
     public Weapon currentWeapon;
     public Unit suppressTarget;
+    public Image staminaBar;
+    public Text weaponText;
+    public Text hpText;
+    public Text nameText;
+    public Text accText;
     #endregion
 
     #region Unit Stats
     public int InitiativeValue;
-    int UnitStat_HitPoints = 5;
+    int UnitStat_HitPoints = 7;
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
     //Temp Value
@@ -37,7 +55,7 @@ public class Unit : MonoBehaviour, IDamagable
     public int UnitStat_Nerve;
     public bool isDead;
     public Vector3 movementPos;
-    float startingMovementPoints = 75;
+    float startingMovementPoints = 25;
     public float movementPointsRemaining;
     public bool hasNoMovementRemaining;
     #endregion
@@ -56,9 +74,6 @@ public class Unit : MonoBehaviour, IDamagable
         ShootingStateMachine = GetComponent<Animator>();
         RM = FindObjectOfType <RoundManager>();
 
-        currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
-        //currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
-
         movementPos = this.transform.position;
         movementPointsRemaining = startingMovementPoints;
     }
@@ -68,6 +83,23 @@ public class Unit : MonoBehaviour, IDamagable
         //KD_CC.AimingNode.SetActive(toggle);
         Camera.SetActive(toggle);
         IsBeingControlled = toggle;
+
+        if (selectedWeapon == DemoWeapon.Pistol)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
+        }
+
+        if (selectedWeapon == DemoWeapon.Shotgun)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
+        }
+
+        if (selectedWeapon == DemoWeapon.MachineGun)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_MachineGun");
+        }
+
+        CalculateWeaponStats();
     }
 
     public void Update()
@@ -76,6 +108,7 @@ public class Unit : MonoBehaviour, IDamagable
         {
             PlayerInput();
             SpendMovement();
+            HUDUpdate();
         }
     }
 
@@ -109,6 +142,19 @@ public class Unit : MonoBehaviour, IDamagable
             RM.EndUnitTurn();
         }
     }
+
+    public void HUDUpdate()
+    {
+        staminaBar.fillAmount = movementPointsRemaining / startingMovementPoints;
+
+        weaponText.text = currentWeapon.Weapon_Name;
+
+        hpText.text = "Hp : " + UnitStat_HitPoints;
+
+        nameText.text = this.gameObject.name;
+
+        accText.text = "Acc: " + Calculated_WeaponAccuracy.ToString("0%");
+    }
     #endregion
 
     #region Combat Methods
@@ -134,11 +180,13 @@ public class Unit : MonoBehaviour, IDamagable
         {
             RM.EndUnitTurn();
         }
+
+        this.transform.localScale = new Vector3(1f, 0.25f, 1f);
     } 
 
-    void CalculateWeaponStats()
+    public void CalculateWeaponStats()
     {
-        Calculated_WeaponAccuracy = UnitStat_Accuracy * currentWeapon.Accuracy;
+        Calculated_WeaponAccuracy = (UnitStat_Accuracy + currentWeapon.Accuracy) / 2;
     }
 
     //Select the target to suppress
@@ -206,7 +254,7 @@ public class Unit : MonoBehaviour, IDamagable
 
         if (shooting.isFiring == false && losCheck == true)
         {
-            shooting.TestShooting();
+            shooting.TestShooting(.85f);
         }
     }
 
@@ -228,6 +276,7 @@ public class Unit : MonoBehaviour, IDamagable
     {
         movementPointsRemaining = startingMovementPoints;
         hasNoMovementRemaining = false;
+        KD_CC.cantMove = false;
     }
     #endregion
 } 

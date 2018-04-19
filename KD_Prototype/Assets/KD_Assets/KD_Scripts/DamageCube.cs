@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class DamageCube : MonoBehaviour
 {
+    public LineRenderer tracer;
+
 	void Start ()
     {
         Invoke("DestroySelf", 2f);
@@ -12,5 +14,11 @@ public class DamageCube : MonoBehaviour
     void DestroySelf()
     {
         Destroy(this.gameObject);
+    }
+
+    public void SetOrigin(Vector3 origin)
+    {
+        tracer.SetPosition(0, this.transform.position);
+        tracer.SetPosition(1, origin);
     }
 }

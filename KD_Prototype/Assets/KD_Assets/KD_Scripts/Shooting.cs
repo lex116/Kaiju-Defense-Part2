@@ -99,9 +99,11 @@ public class Shooting : MonoBehaviour
     //}
     #endregion
 
-    public void TestShooting()
+    public void TestShooting(float accMod)
     {
         currentWeapon = unit.currentWeapon;
+
+        unit.CalculateWeaponStats();
 
         if (!isFiring)
         {
@@ -109,16 +111,18 @@ public class Shooting : MonoBehaviour
             BurstsFired = 0;
 
             isFiring = true;
-            StartCoroutine(TestShootingRoutine());
+            StartCoroutine(TestShootingRoutine(accMod));
         }
     }
     
-    IEnumerator TestShootingRoutine()
+    IEnumerator TestShootingRoutine(float AccMod)
     {
         #region Fields
         ShotsFired = 0;
         IDamagable objectToBeDamaged;
         Vector3 DirectionToFire;
+
+        float Acc_W_Mod = unit.Calculated_WeaponAccuracy * AccMod;
         #endregion 
 
         while (BurstsFired < unit.currentWeapon.BurstCount)
@@ -128,9 +132,9 @@ public class Shooting : MonoBehaviour
             while (ShotsFired < unit.currentWeapon.ShotCount)
             {
                 #region Shooting Code Block
-                float randomXVector = UnityEngine.Random.Range((1f - unit.currentWeapon.Accuracy), ((1f - unit.currentWeapon.Accuracy) * -1));
-                float randomYVector = UnityEngine.Random.Range((1f - unit.currentWeapon.Accuracy), ((1f - unit.currentWeapon.Accuracy) * -1));
-                float randomZVector = UnityEngine.Random.Range((1f - unit.currentWeapon.Accuracy), ((1f - unit.currentWeapon.Accuracy) * -1));
+                float randomXVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
+                float randomYVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
+                float randomZVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
 
                 DirectionToFire =
                     unit.AimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
@@ -148,11 +152,17 @@ public class Shooting : MonoBehaviour
                             objectToBeDamaged.TakeDamage(unit.currentWeapon.Damage);
                         }
 
-                        Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));
+                        GameObject dmgCube = Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));
+
+                        DamageCube dmgCubeScript = dmgCube.GetComponent<DamageCube>();
+
+                        dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
 
                         Debug.DrawRay(unit.AimingNode.transform.position, DirectionToFire * unit.currentWeapon.Range, Color.red, 1.5f);
+
                     }
                 }
+
                 #endregion
 
                 ShotsFired++;

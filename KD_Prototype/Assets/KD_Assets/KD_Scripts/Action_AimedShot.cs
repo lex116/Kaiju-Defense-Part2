@@ -7,11 +7,11 @@ public class Action_AimedShot : TimeScaleAction
     public Action_AimedShot()
     {
         actionName = "Aimed Shot";
-        timeScaleOffSet = 2;
+        timeScaleOffSet = 1;
     }
 
     public override void ActionEffect()
     {
-        ActingUnit.shooting.TestShooting();
+        ActingUnit.shooting.TestShooting(1f);
     }
 }
