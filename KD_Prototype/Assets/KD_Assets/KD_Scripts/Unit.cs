@@ -32,16 +32,13 @@ public class Unit : MonoBehaviour, IDamagable
     [SerializeField]
     public Weapon currentWeapon;
     public Unit suppressTarget;
-    public Image staminaBar;
-    public Text weaponText;
-    public Text hpText;
-    public Text nameText;
-    public Text accText;
+    public string LookedAtObject;
     #endregion
 
     #region Unit Stats
     public int InitiativeValue;
-    int UnitStat_HitPoints = 7;
+    [HideInInspector]
+    public int UnitStat_HitPoints = 7;
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
     //Temp Value
@@ -55,7 +52,8 @@ public class Unit : MonoBehaviour, IDamagable
     public int UnitStat_Nerve;
     public bool isDead;
     public Vector3 movementPos;
-    float startingMovementPoints = 25;
+    [HideInInspector]
+    public float startingMovementPoints = 35;
     public float movementPointsRemaining;
     public bool hasNoMovementRemaining;
     #endregion
@@ -108,7 +106,7 @@ public class Unit : MonoBehaviour, IDamagable
         {
             PlayerInput();
             SpendMovement();
-            HUDUpdate();
+            LookAtObject();
         }
     }
 
@@ -143,17 +141,19 @@ public class Unit : MonoBehaviour, IDamagable
         }
     }
 
-    public void HUDUpdate()
+    public void LookAtObject()
     {
-        staminaBar.fillAmount = movementPointsRemaining / startingMovementPoints;
+        LookedAtObject = null;
 
-        weaponText.text = currentWeapon.Weapon_Name;
+        RaycastHit hit;
 
-        hpText.text = "Hp : " + UnitStat_HitPoints;
-
-        nameText.text = this.gameObject.name;
-
-        accText.text = "Acc: " + Calculated_WeaponAccuracy.ToString("0%");
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+        {
+            if (hit.collider.gameObject.name != null)
+            {
+                LookedAtObject = hit.collider.gameObject.name;
+            }
+        }
     }
     #endregion
 

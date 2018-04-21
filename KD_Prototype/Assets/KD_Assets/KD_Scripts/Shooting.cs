@@ -19,12 +19,6 @@ public class Shooting : MonoBehaviour
 
     public GameObject DamageCube;
 
-    // Update is called once per frame
-    void Update () 
-    {
-
-	}
-
     #region Thomas Shooting
     //private void DetectAccuracy()
     //{
@@ -157,9 +151,6 @@ public class Shooting : MonoBehaviour
                         DamageCube dmgCubeScript = dmgCube.GetComponent<DamageCube>();
 
                         dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
-
-                        Debug.DrawRay(unit.AimingNode.transform.position, DirectionToFire * unit.currentWeapon.Range, Color.red, 1.5f);
-
                     }
                 }
 

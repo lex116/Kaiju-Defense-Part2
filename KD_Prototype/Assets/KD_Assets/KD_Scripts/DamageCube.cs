@@ -8,7 +8,7 @@ public class DamageCube : MonoBehaviour
 
 	void Start ()
     {
-        Invoke("DestroySelf", 2f);
+        Invoke("DestroySelf", 0.5f);
 	}
 	
     void DestroySelf()

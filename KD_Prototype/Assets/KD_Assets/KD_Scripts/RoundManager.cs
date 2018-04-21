@@ -3,9 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour 
 {
+    #region Hud Fields
+    [Header("Hud Fields")]
+    public Image staminaBar;
+    public Text weaponText;
+    public Text hpText;
+    public Text nameText;
+    public Text accText;
+    public Text lookAtText;
+    #endregion
+
     #region InitiativeFields
     public Unit SelectedUnit;
     public Unit[] AllUnits;
@@ -35,6 +46,25 @@ public class RoundManager : MonoBehaviour
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
+
+        if (SelectedUnit != null)
+        {
+            HudUpdate();
+        }
+    }
+    void HudUpdate()
+    {
+        staminaBar.fillAmount = SelectedUnit.movementPointsRemaining / SelectedUnit.startingMovementPoints;
+
+        weaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
+
+        hpText.text = "Hp : " + SelectedUnit.UnitStat_HitPoints;
+
+        nameText.text = SelectedUnit.gameObject.name;
+
+        accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy.ToString("0%");
+
+        lookAtText.text = SelectedUnit.LookedAtObject;
     }
 
     //0. Calls StartBattle()
