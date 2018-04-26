@@ -9,8 +9,8 @@ public class TimeScaleAction
     public int timeScalePosition;
     public int timeScalePriority;
 
-    public Unit ActingUnit;
-    public Unit TargetUnit;
+    public Unit_Master ActingUnit;
+    public Unit_Master TargetUnit;
 
     public bool wasActivated;
 
@@ -19,7 +19,7 @@ public class TimeScaleAction
         // Does something eventually
     }
 
-    public virtual void SetUp(Unit actingUnit, Unit targetUnit)
+    public virtual void SetUp(Unit_Master actingUnit, Unit_Master targetUnit)
     {
         ActingUnit = actingUnit;
         TargetUnit = targetUnit;

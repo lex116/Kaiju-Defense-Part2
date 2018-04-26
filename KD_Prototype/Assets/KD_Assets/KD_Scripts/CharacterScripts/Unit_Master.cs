@@ -4,41 +4,44 @@ using UnityEngine;
 using UnityEngine.UI;
 
 
-public class Unit : MonoBehaviour, IDamagable
+public class Unit_Master : MonoBehaviour, IDamagable
 {
-    //temp 
+    public string FactionTag;
+
     public enum DemoWeapon
     {
-        Pistol,
-        Shotgun,
-        MachineGun
+        Human_Pistol,
+        Human_Shotgun,
+        Human_MachineGun,
+        Vehicle_MachineGun
     }
 
     [SerializeField]
     public DemoWeapon selectedWeapon;
 
     #region Component Fields
+    public KD_CharacterController KD_CC;
     [HideInInspector]
-    KD_CharacterController KD_CC;
-    public Vehicle pilotedVehicle;
     public Shooting shooting;
     public bool IsBeingControlled;
     public Animator ShootingStateMachine;
     //This doesnt do anything but it could if we change the way targetting works
-    public Unit TargetUnit;
+    public Unit_Master TargetUnit;
     public GameObject AimingNode;
     public GameObject Camera;
-    RoundManager RM;
+    internal RoundManager roundManager;
     [SerializeField]
     public Weapon currentWeapon;
-    public Unit suppressTarget;
+    public Unit_Master suppressionTarget;
     public string LookedAtObject;
     #endregion
 
     #region Unit Stats
-    public int InitiativeValue;
-    [HideInInspector]
-    public int UnitStat_HitPoints = 7;
+    public int UnitStat_Initiative;
+    //[HideInInspector]
+    internal int UnitStat_StartingHitPoints;
+    internal int UnitStat_HitPoints;
+    public int UnitStat_StartingActionPoints;
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
     //Temp Value
@@ -50,11 +53,16 @@ public class Unit : MonoBehaviour, IDamagable
     //public int UnitStat_Aptitude; ???
     public int UnitStat_VisualRange;
     public int UnitStat_Nerve;
+
+    //
+
     public bool isDead;
-    public Vector3 movementPos;
+    public Vector3 movementPosition;
     [HideInInspector]
-    public float startingMovementPoints = 35;
-    public float movementPointsRemaining;
+    internal float startingMovementPoints;
+    //internal float startingMovementPoints = 75;
+    [HideInInspector]
+    internal float movementPointsRemaining;
     public bool hasNoMovementRemaining;
     #endregion
 
@@ -66,14 +74,44 @@ public class Unit : MonoBehaviour, IDamagable
     #region Utility + Setup Methods
     public void Awake()
     {
-        KD_CC = GetComponent<KD_CharacterController>();
-        shooting = GetComponent<Shooting>();
-        shooting.unit = this;
-        ShootingStateMachine = GetComponent<Animator>();
-        RM = FindObjectOfType <RoundManager>();
+        SetUp();
+        UnitStat_HitPoints = UnitStat_StartingHitPoints;
+    }
 
-        movementPos = this.transform.position;
-        movementPointsRemaining = startingMovementPoints;
+    public virtual void SetUp()
+    {
+        //
+    }
+
+    public void Start()
+    {
+        SetWeapon();
+    }
+
+    public void SetWeapon()
+    {
+        if (selectedWeapon == DemoWeapon.Human_Pistol)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
+        }
+
+        if (selectedWeapon == DemoWeapon.Human_Shotgun)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
+        }
+
+        if (selectedWeapon == DemoWeapon.Human_MachineGun)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_MachineGun");
+        }
+
+        if (selectedWeapon == DemoWeapon.Vehicle_MachineGun)
+        {
+            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Vehicle_MachineGun");
+        }
+
+
+        CalculateWeaponStats();
     }
 
     public void ToggleControl(bool toggle)
@@ -81,23 +119,7 @@ public class Unit : MonoBehaviour, IDamagable
         //KD_CC.AimingNode.SetActive(toggle);
         Camera.SetActive(toggle);
         IsBeingControlled = toggle;
-
-        if (selectedWeapon == DemoWeapon.Pistol)
-        {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
-        }
-
-        if (selectedWeapon == DemoWeapon.Shotgun)
-        {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
-        }
-
-        if (selectedWeapon == DemoWeapon.MachineGun)
-        {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_MachineGun");
-        }
-
-        CalculateWeaponStats();
+        SetWeapon();
     }
 
     public void Update()
@@ -130,14 +152,14 @@ public class Unit : MonoBehaviour, IDamagable
         {
             PaintTarget();
 
-            if (suppressTarget != null)
+            if (suppressionTarget != null)
             {
                 ShootingStateMachine.SetInteger("ShootingMode", 3);
             }
         }
         if (Input.GetKeyDown(KeyCode.E))
         {
-            RM.EndUnitTurn();
+            roundManager.EndUnitTurn();
         }
     }
 
@@ -147,7 +169,7 @@ public class Unit : MonoBehaviour, IDamagable
 
         RaycastHit hit;
 
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, currentWeapon.Range))
         {
             if (hit.collider.gameObject.name != null)
             {
@@ -155,56 +177,35 @@ public class Unit : MonoBehaviour, IDamagable
             }
         }
     }
-    #endregion
-
-    #region Combat Methods
-    public virtual void TakeDamage(int Damage)
-    {
-        if (isDead == false)
-        {
-            UnitStat_HitPoints = UnitStat_HitPoints - Damage;
-            if (UnitStat_HitPoints <= 0)
-            {
-                DIE();
-            }
-        }
-    }
-
-    public void DIE()
-    {
-        Debug.Log(this.gameObject.name + "has died");
-
-        isDead = true;
-
-        if (RM.SelectedUnit == this)
-        {
-            RM.EndUnitTurn();
-        }
-
-        this.transform.localScale = new Vector3(1f, 0.25f, 1f);
-    } 
 
     public void CalculateWeaponStats()
     {
         Calculated_WeaponAccuracy = (UnitStat_Accuracy + currentWeapon.Accuracy) / 2;
     }
+    #endregion
+
+    #region Combat Methods
+    public virtual void TakeDamage(int Damage)
+    {
+        //
+    }
 
     //Select the target to suppress
     public void PaintTarget()
     {
-        suppressTarget = null;
+        suppressionTarget = null;
 
         RaycastHit hit;
 
         if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
         {
-            Unit tempUnit;
+            Unit_Master tempUnit;
 
-            tempUnit = hit.collider.GetComponent<Unit>();
+            tempUnit = hit.collider.GetComponent<Unit_Master>();
 
             if (tempUnit != null)
             {
-                suppressTarget = tempUnit;
+                suppressionTarget = tempUnit;
             }
         }
     }
@@ -212,7 +213,7 @@ public class Unit : MonoBehaviour, IDamagable
     public void TrackSuppressTarget()
     {
         //Rotate the body to face the target
-        transform.LookAt(suppressTarget.transform);
+        transform.LookAt(suppressionTarget.transform);
 
         Vector3 bodyEulerAngles = transform.rotation.eulerAngles;
         bodyEulerAngles.x = 0;
@@ -221,7 +222,7 @@ public class Unit : MonoBehaviour, IDamagable
         transform.rotation = Quaternion.Euler(bodyEulerAngles);
 
         //Rotate the camera to face the target
-        AimingNode.transform.LookAt(suppressTarget.transform);
+        AimingNode.transform.LookAt(suppressionTarget.transform);
 
         Vector3 camEulerAngles = AimingNode.transform.rotation.eulerAngles;
         bodyEulerAngles.y = 0;
@@ -240,7 +241,7 @@ public class Unit : MonoBehaviour, IDamagable
 
         if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
         {
-            if (suppressTarget == hit.collider.GetComponent<Unit>())
+            if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
             {
                 losCheck = true;
             }
@@ -254,20 +255,21 @@ public class Unit : MonoBehaviour, IDamagable
 
         if (shooting.isFiring == false && losCheck == true)
         {
-            shooting.TestShooting(.85f);
+            shooting.TestShooting(.9f);
         }
     }
 
     public void SpendMovement()
     {
-        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPos.x);
+        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPosition.x);
         //movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.y - movementPos.y);
-        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPos.z);
+        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPosition.z);
 
-        movementPos = this.transform.position;
+        movementPosition = this.transform.position;
 
         if (movementPointsRemaining <= 0)
         {
+            movementPointsRemaining = 0;
             KD_CC.cantMove = true;
         }
     }
@@ -277,6 +279,11 @@ public class Unit : MonoBehaviour, IDamagable
         movementPointsRemaining = startingMovementPoints;
         hasNoMovementRemaining = false;
         KD_CC.cantMove = false;
+    }
+
+    public virtual void Die()
+    {
+
     }
     #endregion
 } 

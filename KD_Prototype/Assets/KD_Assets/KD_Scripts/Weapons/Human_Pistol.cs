@@ -7,7 +7,7 @@ public class Human_Pistol : Weapon
     public Human_Pistol()
     {
         Weapon_Name = "Pistol";
-        Damage = 1;
+        Damage = 2;
         damageType = DamageType.Piercing;
         Accuracy = .97f;
         ShotCount = 8;

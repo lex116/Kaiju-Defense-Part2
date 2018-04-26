@@ -6,7 +6,7 @@ public class ShootingState_Suppression : StateMachineBehaviour
 {
     //Suppression Loop?
 
-    public Unit tempUnit;
+    public Unit_Master tempUnit;
 
     public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
@@ -17,7 +17,7 @@ public class ShootingState_Suppression : StateMachineBehaviour
     {
         if(tempUnit == null)
         {
-            tempUnit = animator.gameObject.GetComponent<Unit>();
+            tempUnit = animator.gameObject.GetComponent<Unit_Master>();
             Debug.Log("Hit");
         }
 

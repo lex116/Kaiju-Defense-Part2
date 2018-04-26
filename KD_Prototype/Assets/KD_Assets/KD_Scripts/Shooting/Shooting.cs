@@ -10,7 +10,7 @@ public class Shooting : MonoBehaviour
 
     Weapon currentWeapon;
 
-    public Unit unit;
+    public Unit_Master unit;
 
     public int ShotsFired = 0;
     public int BurstsFired = 0;
