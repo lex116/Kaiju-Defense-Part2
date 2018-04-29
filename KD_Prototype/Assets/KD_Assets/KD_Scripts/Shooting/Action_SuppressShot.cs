@@ -17,6 +17,6 @@ public class Action_SuppressShot : TimeScaleAction
 
         Debug.Log("Suppression Begginning");
 
-        ActingUnit.ShootingStateMachine.SetInteger("ShootingMode", 4);
+        ActingUnit.ShootingStateMachine.SetBool("isSPR", true);
     }
 }

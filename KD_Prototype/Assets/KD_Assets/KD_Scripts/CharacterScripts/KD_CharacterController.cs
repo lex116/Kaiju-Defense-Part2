@@ -15,7 +15,7 @@ public class KD_CharacterController : MonoBehaviour
     #endregion 
 
     #region MovementFields
-    CharacterController characterController;
+    internal CharacterController characterController;
     float walkSpeed = 4;
     Rigidbody rigidBody;
     float GroundCheckDistance = 0.75f;

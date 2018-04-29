@@ -1,4 +1,4 @@
-﻿using System;
+﻿  using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,16 @@ public class RoundManager : MonoBehaviour
 {
     public bool isInMapMode;
 
+    #region Notification Feed
+    [Header("Notification Feed")]
+    public int MaxNumberOfLines;
+    
+    [SerializeField]
+    public List<Text> KillFeedBoxes = new List<Text>();
+
+    int testNote = 0;
+    #endregion
+
     #region Map Hud Fields
     [Header("Map Hud Fields")]
     public Camera MapCamera;
@@ -18,7 +28,6 @@ public class RoundManager : MonoBehaviour
     public Text HUD_Map_hpText;
     public Text HUD_Map_heldWeaponText;
     public Text HUD_Map_accText;
-
     #endregion
 
     #region Hud Fields
@@ -31,6 +40,8 @@ public class RoundManager : MonoBehaviour
     public Text HUD_Player_nameText;
     public Text HUD_Player_accText;
     public Text HUD_Player_lookAtText;
+    public Text HUD_Player_ActionText;
+    public GameObject HUD_Player_ConfirmText;
     #endregion
 
     #region InitiativeFields
@@ -52,6 +63,8 @@ public class RoundManager : MonoBehaviour
     public TimeScaleAction[] ActionsToActivate;
     #endregion
 
+    #region Methods
+
     // Mouse Locking
     void Awake()
     {
@@ -67,6 +80,13 @@ public class RoundManager : MonoBehaviour
         if (SelectedUnit != null && isInMapMode == false)
         {
             PlayerHudUpdate();
+        }
+
+        if (Input.GetKeyDown(KeyCode.N))
+        {
+            testNote ++;
+
+            AddNotificationToFeed("Test: " + testNote);
         }
     }
     void PlayerHudUpdate()
@@ -88,8 +108,8 @@ public class RoundManager : MonoBehaviour
     void Start ()
     {
         StartBattle();
+        ClearNotificationFeed();
 	}
-
 
     //1. Starts the battle scenario, playing a cinematic or text etc, then calls StartRound()
     void StartBattle()
@@ -245,14 +265,17 @@ public class RoundManager : MonoBehaviour
     {
         foreach (TimeScaleAction x in ActionsToActivate)
         {
-            x.ActionEffect();
-
-            while(x.ActingUnit.shooting.isFiring)
+            if (x.ActingUnit.isDead == false)
             {
-                yield return new WaitForFixedUpdate();
-            }
+                x.ActionEffect();
 
-            yield return new WaitForSeconds(1f);
+                while (x.ActingUnit.shooting.isFiring)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+
+                yield return new WaitForSeconds(1f);
+            }
         }
 
         ActionsToActivate = null;
@@ -323,11 +346,11 @@ public class RoundManager : MonoBehaviour
         {
             if (x.suppressionTarget == SelectedUnit)
             {
-                x.ShootingStateMachine.SetBool("isSPR", true);
+                x.isAbleToSuppress = true;
             }
             else
             {
-                x.ShootingStateMachine.SetBool("isSPR", false);
+                x.isAbleToSuppress = false;
             }
         }
     }
@@ -367,7 +390,7 @@ public class RoundManager : MonoBehaviour
     {
         foreach (Unit_Master x in initiativeOrder)
         {
-            x.ShootingStateMachine.SetInteger("ShootingMode", 0);
+            //x.ShootingStateMachine.SetInteger("ShootingMode", 0);
             x.ShootingStateMachine.SetBool("isSPR", false);
             x.ShootingStateMachine.SetBool("Reset", true);
         }
@@ -376,7 +399,7 @@ public class RoundManager : MonoBehaviour
 
     public void ActivateMapCam()
     {
-        ResetAllUnitStateMachines();
+        DeactivateSuppressors();
 
         isInMapMode = true;
         Cursor.lockState = CursorLockMode.None;
@@ -391,7 +414,7 @@ public class RoundManager : MonoBehaviour
         HUD_Map_heldWeaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
         HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy.ToString("0%");
 
-    }
+    } 
 
     public void DeactivateMapCam()
     {
@@ -403,9 +426,39 @@ public class RoundManager : MonoBehaviour
 
         MapCamera.gameObject.SetActive(false);
         MapHUD.SetActive(false);
+        HUD_Player_ConfirmText.SetActive(false);
 
         ActivateNewUnit();
+    }
 
+    public void DeactivateSuppressors()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.isAbleToSuppress = false;
+        }
+    }
 
+    #endregion
+
+    public void AddNotificationToFeed(string note)
+    {
+        foreach (Text x in KillFeedBoxes)
+        {
+            if (KillFeedBoxes.IndexOf(x) <= KillFeedBoxes.Count - 2)
+            {
+                x.text = KillFeedBoxes[KillFeedBoxes.IndexOf(x) + 1].text;
+            }
+        }
+
+        KillFeedBoxes[KillFeedBoxes.Count - 1].text = note;
+    }
+
+    public void ClearNotificationFeed()
+    {
+        foreach (Text x in KillFeedBoxes)
+        {
+            x.text = "";
+        }
     }
 }

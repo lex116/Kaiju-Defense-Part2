@@ -18,7 +18,6 @@ public class ShootingState_Suppression : StateMachineBehaviour
         if(tempUnit == null)
         {
             tempUnit = animator.gameObject.GetComponent<Unit_Master>();
-            Debug.Log("Hit");
         }
 
         tempUnit.SuppressionUpdate();

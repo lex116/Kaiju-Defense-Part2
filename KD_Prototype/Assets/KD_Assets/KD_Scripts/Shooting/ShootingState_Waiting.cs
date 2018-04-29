@@ -8,7 +8,8 @@ public class ShootingState_Waiting : StateMachineBehaviour
 
     public override void OnStateEnter(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        //animator.SetInteger("ShootingMode", 0);
+        animator.SetInteger("ShootingMode", 0);
+        //animator.SetBool("isSPR", false);
         animator.SetBool("Reset", false);
     }
 }

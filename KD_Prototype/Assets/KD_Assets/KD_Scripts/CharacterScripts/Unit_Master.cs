@@ -19,6 +19,15 @@ public class Unit_Master : MonoBehaviour, IDamagable
     [SerializeField]
     public DemoWeapon selectedWeapon;
 
+    public enum Actions
+    {
+        QuickShot,
+        AimedShot,
+        SuppressShot
+    }
+
+    public Actions SelectedAction;
+
     #region Component Fields
     public KD_CharacterController KD_CC;
     [HideInInspector]
@@ -28,12 +37,19 @@ public class Unit_Master : MonoBehaviour, IDamagable
     //This doesnt do anything but it could if we change the way targetting works
     public Unit_Master TargetUnit;
     public GameObject AimingNode;
-    public GameObject Camera;
+    //public GameObject Camera;
+    public Camera playerCamera;
     internal RoundManager roundManager;
     [SerializeField]
     public Weapon currentWeapon;
     public Unit_Master suppressionTarget;
     public string LookedAtObject;
+    int QuickShotFOV = 60;
+    int AimedShotFOV = 15;
+    int SuppressShotFOV = 30;
+    int TargetFOV;
+    public bool isAbleToSuppress;
+
     #endregion
 
     #region Unit Stats
@@ -117,9 +133,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void ToggleControl(bool toggle)
     {
         //KD_CC.AimingNode.SetActive(toggle);
-        Camera.SetActive(toggle);
+        //Camera.SetActive(toggle);
+        playerCamera.gameObject.SetActive(toggle);
         IsBeingControlled = toggle;
         SetWeapon();
+        SetAction_QuickShot();
     }
 
     public void Update()
@@ -129,6 +147,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
             PlayerInput();
             SpendMovement();
             LookAtObject();
+            ChangeCameraFOV();
         }
     }
 
@@ -136,29 +155,50 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         KD_CC.InputUpdate();
 
-        if (Input.GetKeyDown(KeyCode.U))
+        if (Input.GetKeyDown(KeyCode.Keypad1))
         {
-            ShootingStateMachine.SetInteger("ShootingMode", 0);
+            SetAction_QuickShot();
         }
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            ShootingStateMachine.SetInteger("ShootingMode", 1);
-        }
-        if (Input.GetKeyDown(KeyCode.O))
-        {
-            ShootingStateMachine.SetInteger("ShootingMode", 2);
-        }
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            PaintTarget();
 
-            if (suppressionTarget != null)
+        if (Input.GetKeyDown(KeyCode.Keypad2))
+        {
+            SetAction_AimedShot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Keypad3))
+        {
+            SetAction_SuppressShot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            if (SelectedAction == Actions.QuickShot)
             {
-                ShootingStateMachine.SetInteger("ShootingMode", 3);
+                ShootingStateMachine.SetInteger("ShootingMode", 1);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
+            }
+
+            if (SelectedAction == Actions.AimedShot)
+            {
+                ShootingStateMachine.SetInteger("ShootingMode", 2);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
+            }
+
+            if (SelectedAction == Actions.SuppressShot)
+            {
+                PaintTarget();
+
+                if (suppressionTarget != null)
+                {
+                    ShootingStateMachine.SetInteger("ShootingMode", 3);
+                    roundManager.HUD_Player_ConfirmText.SetActive(true);
+                }
             }
         }
-        if (Input.GetKeyDown(KeyCode.E))
+
+        if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
         {
+            roundManager.HUD_Player_ConfirmText.SetActive(true);
             roundManager.EndUnitTurn();
         }
     }
@@ -182,6 +222,41 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         Calculated_WeaponAccuracy = (UnitStat_Accuracy + currentWeapon.Accuracy) / 2;
     }
+
+    public void SetAction_QuickShot()
+    {
+        SelectedAction = Actions.QuickShot;
+        roundManager.HUD_Player_ActionText.text = "QuickShot";
+        TargetFOV = QuickShotFOV;
+    }
+
+    public void SetAction_AimedShot()
+    {
+        SelectedAction = Actions.AimedShot;
+        roundManager.HUD_Player_ActionText.text = "AimedShot";
+        TargetFOV = AimedShotFOV;
+    }
+
+    public void SetAction_SuppressShot()
+    {
+        SelectedAction = Actions.SuppressShot;
+        roundManager.HUD_Player_ActionText.text = "SuppressShot";
+        TargetFOV = SuppressShotFOV;
+    }
+
+    public void ChangeCameraFOV()
+    {
+        if (playerCamera.fieldOfView < TargetFOV)
+        {
+            playerCamera.fieldOfView++;
+        }
+
+        if (playerCamera.fieldOfView > TargetFOV)
+        {
+            playerCamera.fieldOfView--;
+        }
+    }
+
     #endregion
 
     #region Combat Methods
@@ -197,7 +272,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
         RaycastHit hit;
 
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, currentWeapon.Range))
         {
             Unit_Master tempUnit;
 
@@ -233,29 +308,32 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void SuppressionUpdate()
     {
-        TrackSuppressTarget();
-
-        bool losCheck = false;
-
-        RaycastHit hit;
-
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+        if (isAbleToSuppress == true)
         {
-            if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+            TrackSuppressTarget();
+
+            bool losCheck = false;
+
+            RaycastHit hit;
+
+            if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
             {
-                losCheck = true;
+                if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+                {
+                    losCheck = true;
+                }
+
+                else
+                {
+                    losCheck = false;
+                }
+
             }
 
-            else
+            if (shooting.isFiring == false && losCheck == true)
             {
-                losCheck = false;
+                shooting.TestShooting(.9f);
             }
-
-        }
-
-        if (shooting.isFiring == false && losCheck == true)
-        {
-            shooting.TestShooting(.9f);
         }
     }
 
@@ -270,7 +348,10 @@ public class Unit_Master : MonoBehaviour, IDamagable
         if (movementPointsRemaining <= 0)
         {
             movementPointsRemaining = 0;
-            KD_CC.cantMove = true;
+            if (KD_CC.characterController.isGrounded)
+            {
+                KD_CC.cantMove = true;
+            }
         }
     }
 
