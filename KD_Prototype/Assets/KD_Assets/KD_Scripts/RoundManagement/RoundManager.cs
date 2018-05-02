@@ -11,12 +11,9 @@ public class RoundManager : MonoBehaviour
 
     #region Notification Feed
     [Header("Notification Feed")]
-    public int MaxNumberOfLines;
     
     [SerializeField]
     public List<Text> KillFeedBoxes = new List<Text>();
-
-    int testNote = 0;
     #endregion
 
     #region Map Hud Fields
@@ -28,6 +25,9 @@ public class RoundManager : MonoBehaviour
     public Text HUD_Map_hpText;
     public Text HUD_Map_heldWeaponText;
     public Text HUD_Map_accText;
+
+    [SerializeField]
+    public List<Text> InitiatveOrderFeedBoxes = new List<Text>();
     #endregion
 
     #region Hud Fields
@@ -61,6 +61,7 @@ public class RoundManager : MonoBehaviour
     List<TimeScaleAction> QueuedActions = new List<TimeScaleAction>();
     [SerializeField]
     public TimeScaleAction[] ActionsToActivate;
+
     #endregion
 
     #region Methods
@@ -80,13 +81,6 @@ public class RoundManager : MonoBehaviour
         if (SelectedUnit != null && isInMapMode == false)
         {
             PlayerHudUpdate();
-        }
-
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            testNote ++;
-
-            AddNotificationToFeed("Test: " + testNote);
         }
     }
     void PlayerHudUpdate()
@@ -109,6 +103,7 @@ public class RoundManager : MonoBehaviour
     {
         StartBattle();
         ClearNotificationFeed();
+        ClearInitiativeOrderFeed();
 	}
 
     //1. Starts the battle scenario, playing a cinematic or text etc, then calls StartRound()
@@ -131,6 +126,7 @@ public class RoundManager : MonoBehaviour
     IEnumerator SRTestRoutine()
     {
         yield return new WaitForSeconds(1f);
+
         OrderUnitsByInitiative();
         DestroyDeadUnits();
         SelectTheFirstUnit();
@@ -235,6 +231,7 @@ public class RoundManager : MonoBehaviour
     //Ends the unit's turn and calls FindNextActionsToActivate as a result
     public void EndUnitTurn()
     {
+        //SelectedUnit = null;
         FindNextActionsToActivate();
     }
 
@@ -297,7 +294,7 @@ public class RoundManager : MonoBehaviour
 
         SelectedUnitIndex++;
 
-        Debug.Log("unit index: " + SelectedUnitIndex);
+        //Debug.Log("unit index: " + SelectedUnitIndex);
 
         if (SelectedUnitIndex >= initiativeOrder.Count)
         {
@@ -329,12 +326,13 @@ public class RoundManager : MonoBehaviour
         }
     }
 
+
+    //Actitvate Map cam
+
+
     //Activate the unit to be controlled
     void ActivateNewUnit()
     {
-        //SelectedUnit.ShootingStateMachine.SetInteger("ShootingMode", 0);
-        //SelectedUnit.ShootingStateMachine.SetBool("isSPR", false);
-        //SelectedUnit.ShootingStateMachine.SetBool("Reset", true);
         SelectedUnit.ToggleControl(true);
         ActivateSuppressors();
     }
@@ -362,24 +360,77 @@ public class RoundManager : MonoBehaviour
     }
     #endregion
 
-
     //4. Once all units have had turn the RM cleans up and restarts at step 2.
     #region End Turn Methods
     //Any clean up, then call RoundProcess
     void EndRound()
     {
-        //ActivateRemainingActions();
-        ClearOldActions();
-        ResetAllUnitStateMachines();
-        Debug.Log("round end");
-
-        StartRound();
+        ActivateRemainingActions();
     }
     //activate all remaining actions
     void ActivateRemainingActions()
     {
-        Debug.Log("Round Finished");
+        StartCoroutine(ActivateRemainingActionsRoutine());
     }
+    IEnumerator ActivateRemainingActionsRoutine()
+    {
+        QueuedActions.Clear();
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition == CurrentTime)
+            {
+                QueuedActions.Add(x);
+            }
+        }
+
+        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
+
+
+        foreach (TimeScaleAction x in ActionsToActivate)
+        {
+            if (x.ActingUnit.isDead == false)
+            {
+                x.ActionEffect();
+
+                while (x.ActingUnit.shooting.isFiring)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
+        ActionsToActivate = null;
+
+        int numberOfRemainingActions = 0;
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition > CurrentTime)
+            {
+                numberOfRemainingActions++;
+            }
+        }
+
+        if (numberOfRemainingActions > 0)
+        {
+            IncrememntTime();
+            ActivateRemainingActions();
+        }
+
+        if (numberOfRemainingActions == 0)
+        {
+            ClearOldActions();
+            ResetAllUnitStateMachines();
+
+            AddNotificationToFeed("End of Round");
+
+            StartRound();
+        }
+    }
+
     //Removes used up actions from the timescale
     public void ClearOldActions()
     {
@@ -407,12 +458,20 @@ public class RoundManager : MonoBehaviour
         PlayerHUD.gameObject.SetActive(false);
 
         MapCamera.gameObject.SetActive(true);
+
         MapHUD.SetActive(true);
 
         HUD_Map_nameText.text = SelectedUnit.gameObject.name;
         HUD_Map_hpText.text = "Hp : " + SelectedUnit.UnitStat_HitPoints;
         HUD_Map_heldWeaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
         HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy.ToString("0%");
+
+        ClearInitiativeOrderFeed();
+
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].text = x.UnitStat_Name;
+        }
 
     } 
 
@@ -457,6 +516,14 @@ public class RoundManager : MonoBehaviour
     public void ClearNotificationFeed()
     {
         foreach (Text x in KillFeedBoxes)
+        {
+            x.text = "";
+        }
+    }
+
+    public void ClearInitiativeOrderFeed()
+    {
+        foreach (Text x in InitiatveOrderFeedBoxes)
         {
             x.text = "";
         }

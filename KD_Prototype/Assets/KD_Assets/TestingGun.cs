@@ -132,7 +132,7 @@ public class TestingGun : MonoBehaviour
 
                         if (objectToBeDamaged != null)
                         {
-                            objectToBeDamaged.TakeDamage(currentWeapon.Damage);
+                            objectToBeDamaged.TakeDamage(currentWeapon.Damage, this.name);
                         }
 
                         GameObject dmgCube = Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));

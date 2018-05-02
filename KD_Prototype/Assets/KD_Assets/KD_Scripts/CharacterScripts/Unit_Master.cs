@@ -53,6 +53,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region Unit Stats
+    public string UnitStat_Name;
     public int UnitStat_Initiative;
     //[HideInInspector]
     internal int UnitStat_StartingHitPoints;
@@ -140,7 +141,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         SetAction_QuickShot();
     }
 
-    public void Update()
+    public virtual void Update()
     {
         if (IsBeingControlled)
         {
@@ -151,7 +152,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    public void PlayerInput()
+    public virtual void PlayerInput()
     {
         KD_CC.InputUpdate();
 
@@ -260,7 +261,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region Combat Methods
-    public virtual void TakeDamage(int Damage)
+    public virtual void TakeDamage(int Damage, string Attacker)
     {
         //
     }
@@ -362,7 +363,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         KD_CC.cantMove = false;
     }
 
-    public virtual void Die()
+    public virtual void Die(string Attacker)
     {
 
     }

@@ -8,6 +8,10 @@ public class Unit_Human : Unit_Master
 {
     public Unit_VehicleMaster pilotedVehicle;
 
+    public Rigidbody TestGrenade;
+    public Transform GrenadeSpawnLocation;
+    public int GrenadeThrowForce;
+
     #region Unit Stats
     public int UnitStat_Level;
     public int UnitStat_ExperiencePoints;
@@ -44,7 +48,7 @@ public class Unit_Human : Unit_Master
     #endregion
 
     #region Combat Methods
-    public override void TakeDamage(int Damage)
+    public override void TakeDamage(int Damage, string Attacker)
     {
         if (isDead == false)
         {
@@ -52,14 +56,14 @@ public class Unit_Human : Unit_Master
             if (UnitStat_HitPoints <= 0)
             {
                 UnitStat_HitPoints = 0;
-                Die();
+                Die(Attacker);
             }
         }
     }
 
-    public override void Die()
+    public override void Die(string Attacker)
     {
-        Debug.Log(this.gameObject.name + "has died");
+        //Debug.Log(this.gameObject.name + "has died");
 
         isDead = true;
 
@@ -69,8 +73,75 @@ public class Unit_Human : Unit_Master
         }
 
         this.transform.localScale = new Vector3(1f, 0.25f, 1f);
+
+        roundManager.AddNotificationToFeed(Attacker + " killed " + UnitStat_Name);
     }
 
+    public override void PlayerInput()
+    {
+        #region Change Shot type
+        KD_CC.InputUpdate();
 
+        if (Input.GetKeyDown(KeyCode.Keypad1))
+        {
+            SetAction_QuickShot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Keypad2))
+        {
+            SetAction_AimedShot();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Keypad3))
+        {
+            SetAction_SuppressShot();
+        }
+
+
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            if (SelectedAction == Actions.QuickShot)
+            {
+                ShootingStateMachine.SetInteger("ShootingMode", 1);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
+            }
+
+            if (SelectedAction == Actions.AimedShot)
+            {
+                ShootingStateMachine.SetInteger("ShootingMode", 2);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
+            }
+
+            if (SelectedAction == Actions.SuppressShot)
+            {
+                PaintTarget();
+
+                if (suppressionTarget != null)
+                {
+                    ShootingStateMachine.SetInteger("ShootingMode", 3);
+                    roundManager.HUD_Player_ConfirmText.SetActive(true);
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
+        {
+            roundManager.HUD_Player_ConfirmText.SetActive(true);
+            roundManager.EndUnitTurn();
+        }
+        #endregion
+
+        if (Input.GetKeyDown(KeyCode.Keypad4))
+        {
+            Rigidbody tempGrenade = 
+                Instantiate(TestGrenade, GrenadeSpawnLocation.transform.position, GrenadeSpawnLocation.transform.rotation);
+            Human_FragGrenade tempGrenadeScript = tempGrenade.GetComponent<Human_FragGrenade>();
+            tempGrenadeScript.Owner = this;
+
+            tempGrenade.AddForce(AimingNode.transform.forward * GrenadeThrowForce);
+        }
+    }
     #endregion
+
+
 }

@@ -15,7 +15,7 @@ public class Action_SuppressShot : TimeScaleAction
     {
         //Cinematic that shows the suppressor is targetting the suppress target?
 
-        Debug.Log("Suppression Begginning");
+        //Debug.Log("Suppression Begginning");
 
         ActingUnit.ShootingStateMachine.SetBool("isSPR", true);
     }

@@ -22,7 +22,7 @@ public class Unit_VehicleMaster : Unit_Master
         ResetMovement();
     }
 
-    public override void TakeDamage(int Damage)
+    public override void TakeDamage(int Damage, string Attacker)
     {
         if (isDead == false)
         {
@@ -36,12 +36,12 @@ public class Unit_VehicleMaster : Unit_Master
             if (UnitStat_HitPoints <= 0)
             {
                 UnitStat_HitPoints = 0;
-                Die();
+                Die(Attacker);
             }
         }
     }
 
-    public override void Die()
+    public override void Die(string Attacker)
     {
         Debug.Log(this.gameObject.name + "has died");
 
@@ -59,5 +59,7 @@ public class Unit_VehicleMaster : Unit_Master
             x.gameObject.AddComponent<Rigidbody>();
             
         }
+
+        roundManager.AddNotificationToFeed(Attacker + " killed " + UnitStat_Name);
     }
 }

@@ -2,5 +2,5 @@
 
 public interface IDamagable
 {
-    void TakeDamage(int Damage);
+    void TakeDamage(int Damage, string Attacker);
 }

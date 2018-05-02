@@ -9,13 +9,14 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     int Armor;
     int DamageResist = 1;
     bool isDestroyed;
+    RoundManager roundManager;
 
     void Awake()
     {
         Armor = StartingArmor;
     }
 
-    public void TakeDamage(int Damage)
+    public void TakeDamage(int Damage, string Attacker)
     {
         if (isDestroyed == false)
         {
@@ -29,14 +30,17 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
             if (Armor <= 0)
             {
                 Armor = 0;
-                DestroyHardPoint();
+                DestroyHardPoint(Attacker);
             }
         }
     }
 
-    void DestroyHardPoint()
+    void DestroyHardPoint(string Attacker)
     {
         isDestroyed = true;
         this.gameObject.AddComponent<Rigidbody>();
+
+        roundManager = FindObjectOfType<RoundManager>();
+        roundManager.AddNotificationToFeed(Attacker + " destroyed " + this.name);
     }
 }
