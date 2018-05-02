@@ -43,14 +43,16 @@ public class Unit_VehicleMaster : Unit_Master
 
     public override void Die(string Attacker)
     {
+        ChangeTeamNerve(-25);
+
         Debug.Log(this.gameObject.name + "has died");
 
         isDead = true;
 
-        if (roundManager.SelectedUnit == this)
-        {
-            roundManager.EndUnitTurn();
-        }
+        //if (roundManager.SelectedUnit == this)
+        //{
+        //    roundManager.EndUnitTurn();
+        //}
 
         //this.transform.localScale = new Vector3(1f, 0.25f, 1f);
         //temp

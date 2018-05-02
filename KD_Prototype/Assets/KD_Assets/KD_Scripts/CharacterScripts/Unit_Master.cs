@@ -6,7 +6,16 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
-    public string FactionTag;
+    public enum FactionTag
+    {
+        Echo,
+        Shades,
+        Russia
+    }
+
+    [SerializeField]
+    public FactionTag UnitStat_FactionTag;
+
 
     public enum DemoWeapon
     {
@@ -62,15 +71,16 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
     //Temp Value
-    public float UnitStat_Accuracy = .90f;
+    public int UnitStat_Accuracy;
     //
     public int UnitStat_Willpower;
     public int UnitStat_Fitness;
     public float UnitStat_Speed;
     //public int UnitStat_Aptitude; ???
     public int UnitStat_VisualRange;
-    public int UnitStat_Nerve;
-
+    public int UnitStat_StartingNerve;
+    int UnitStat_Nerve;
+    bool isPanicked;
     //
 
     public bool isDead;
@@ -93,6 +103,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         SetUp();
         UnitStat_HitPoints = UnitStat_StartingHitPoints;
+        UnitStat_Nerve = UnitStat_StartingNerve;
     }
 
     public virtual void SetUp()
@@ -222,6 +233,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void CalculateWeaponStats()
     {
         Calculated_WeaponAccuracy = (UnitStat_Accuracy + currentWeapon.Accuracy) / 2;
+
+        if (isPanicked)
+        {
+            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.75f;
+        }
     }
 
     public void SetAction_QuickShot()
@@ -257,7 +273,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
             playerCamera.fieldOfView--;
         }
     }
-
     #endregion
 
     #region Combat Methods
@@ -366,6 +381,46 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public virtual void Die(string Attacker)
     {
 
+    }
+
+    public void ChangeNerve(int change)
+    {
+        UnitStat_Nerve = UnitStat_Nerve + change;
+
+        if (UnitStat_Nerve < 50 && !isPanicked)
+        {
+            isPanicked = true;
+            roundManager.AddNotificationToFeed(UnitStat_Name + " has Panicked!");
+        }
+
+        if (UnitStat_Nerve > 50 && isPanicked)
+        {
+            isPanicked = false;
+            roundManager.AddNotificationToFeed(UnitStat_Name + " has Recovered!");
+        }
+
+        if (UnitStat_Nerve > 100)
+        {
+            UnitStat_Nerve = 100;
+        }
+
+        if (UnitStat_Nerve < 0)
+        {
+            UnitStat_Nerve = 0;
+        }
+    }
+
+    public void ChangeTeamNerve(int change)
+    {
+        Unit_Master[] allUnitsToChange = FindObjectsOfType<Unit_Master>();
+
+        foreach (Unit_Master x in allUnitsToChange)
+        {
+            if (x.UnitStat_FactionTag == UnitStat_FactionTag)
+            {
+                x.ChangeNerve(change);
+            }
+        }
     }
     #endregion
 } 

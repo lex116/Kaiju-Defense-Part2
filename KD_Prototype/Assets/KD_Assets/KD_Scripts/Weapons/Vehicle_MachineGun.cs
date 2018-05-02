@@ -9,7 +9,7 @@ public class Vehicle_MachineGun : Weapon
         Weapon_Name = "Heavy MachineGun";
         Damage = 3;
         damageType = DamageType.Piercing;
-        Accuracy = .98f;
+        Accuracy = 70;
         ShotCount = 35;
         BurstCount = 1;
         Range = 300;

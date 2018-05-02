@@ -82,6 +82,14 @@ public class RoundManager : MonoBehaviour
         {
             PlayerHudUpdate();
         }
+
+        if (SelectedUnit != null)
+        {
+            if (SelectedUnit.isDead == true)
+            {
+                EndUnitTurn();
+            }
+        }
     }
     void PlayerHudUpdate()
     {
@@ -93,7 +101,7 @@ public class RoundManager : MonoBehaviour
 
         HUD_Player_nameText.text = SelectedUnit.gameObject.name;
 
-        HUD_Player_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy.ToString("0%");
+        HUD_Player_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
 
         HUD_Player_lookAtText.text = SelectedUnit.LookedAtObject;
     }
@@ -131,6 +139,7 @@ public class RoundManager : MonoBehaviour
         DestroyDeadUnits();
         SelectTheFirstUnit();
         ResetUnitMovement();
+        GiveAllUnitsNerve();
 
         ActivateMapCam();
     }
@@ -464,7 +473,7 @@ public class RoundManager : MonoBehaviour
         HUD_Map_nameText.text = SelectedUnit.gameObject.name;
         HUD_Map_hpText.text = "Hp : " + SelectedUnit.UnitStat_HitPoints;
         HUD_Map_heldWeaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
-        HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy.ToString("0%");
+        HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
 
         ClearInitiativeOrderFeed();
 
@@ -526,6 +535,14 @@ public class RoundManager : MonoBehaviour
         foreach (Text x in InitiatveOrderFeedBoxes)
         {
             x.text = "";
+        }
+    }
+
+    public void GiveAllUnitsNerve()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.ChangeNerve(5);
         }
     }
 }

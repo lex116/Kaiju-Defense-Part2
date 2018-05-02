@@ -8,9 +8,11 @@ public class Unit_Human : Unit_Master
 {
     public Unit_VehicleMaster pilotedVehicle;
 
+    public int NumberOfGrenades;
     public Rigidbody TestGrenade;
     public Transform GrenadeSpawnLocation;
-    public int GrenadeThrowForce;
+    //temp 1000
+    int GrenadeThrowForce = 1500;
 
     #region Unit Stats
     public int UnitStat_Level;
@@ -50,6 +52,8 @@ public class Unit_Human : Unit_Master
     #region Combat Methods
     public override void TakeDamage(int Damage, string Attacker)
     {
+        ChangeTeamNerve(-Damage);
+
         if (isDead == false)
         {
             UnitStat_HitPoints = UnitStat_HitPoints - Damage;
@@ -65,12 +69,14 @@ public class Unit_Human : Unit_Master
     {
         //Debug.Log(this.gameObject.name + "has died");
 
+        ChangeTeamNerve(-15);
+
         isDead = true;
 
-        if (roundManager.SelectedUnit == this)
-        {
-            roundManager.EndUnitTurn();
-        }
+        //if (roundManager.SelectedUnit == this)
+        //{
+        //    roundManager.EndUnitTurn();
+        //}
 
         this.transform.localScale = new Vector3(1f, 0.25f, 1f);
 
@@ -131,7 +137,7 @@ public class Unit_Human : Unit_Master
         }
         #endregion
 
-        if (Input.GetKeyDown(KeyCode.Keypad4))
+        if (Input.GetKeyDown(KeyCode.Keypad4) && NumberOfGrenades > 0)
         {
             Rigidbody tempGrenade = 
                 Instantiate(TestGrenade, GrenadeSpawnLocation.transform.position, GrenadeSpawnLocation.transform.rotation);
@@ -139,6 +145,8 @@ public class Unit_Human : Unit_Master
             tempGrenadeScript.Owner = this;
 
             tempGrenade.AddForce(AimingNode.transform.forward * GrenadeThrowForce);
+
+            NumberOfGrenades--;
         }
     }
     #endregion

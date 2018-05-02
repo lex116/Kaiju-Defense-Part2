@@ -8,7 +8,7 @@ public class Weapon : ScriptableObject
     public string Weapon_Name;
     public int Damage;
     public DamageType damageType;
-    public float Accuracy;
+    public int Accuracy;
     public int ShotCount;
     public int BurstCount;
     public int Range;

@@ -9,7 +9,7 @@ public class Human_MachineGun : Weapon
         Weapon_Name = "MachineGun";
         Damage = 3;
         damageType = DamageType.Piercing;
-        Accuracy = .98f;
+        Accuracy = 80;
         ShotCount = 16;
         BurstCount = 1;
         Range = 150;

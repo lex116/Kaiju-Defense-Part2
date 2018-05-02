@@ -9,7 +9,7 @@ public class Human_Shotgun : Weapon
         Weapon_Name = "Shotgun";
         Damage = 1;
         damageType = DamageType.Piercing;
-        Accuracy = .90f;
+        Accuracy = 15;
         ShotCount = 10;
         BurstCount = 3; 
         Range = 75;

@@ -37,25 +37,34 @@ public class Human_FragGrenade : MonoBehaviour
 
         foreach (Collider x in hitColliders)
         {
-            IDamagable objectToBeDamaged;
 
-            objectToBeDamaged = x.gameObject.GetComponent<IDamagable>();
+            RaycastHit hit;
 
-            if (objectToBeDamaged != null)
+            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, Mathf.Infinity))
             {
-                int damageToDeal = ExplosionDamage;
-
-                float dist = Vector3.Distance(x.transform.position, transform.position);
-
-                if (dist > ExplosionRadius / 2)
+                if (hit.collider == x)
                 {
-                    damageToDeal = ExplosionDamage / 2;
+                    IDamagable objectToBeDamaged;
+
+                    objectToBeDamaged = x.gameObject.GetComponent<IDamagable>();
+
+                    if (objectToBeDamaged != null)
+                    {
+                        int damageToDeal = ExplosionDamage;
+
+                        float dist = Vector3.Distance(x.transform.position, transform.position);
+
+                        if (dist > ExplosionRadius / 2)
+                        {
+                            damageToDeal = ExplosionDamage / 2;
+                        }
+
+                        objectToBeDamaged.TakeDamage(damageToDeal, Owner.UnitStat_Name);
+                    }
                 }
-
-                objectToBeDamaged.TakeDamage(damageToDeal, Owner.UnitStat_Name);
             }
-        }
 
-        Destroy(this.gameObject);
+            Destroy(this.gameObject);
+        }
     }
 }
