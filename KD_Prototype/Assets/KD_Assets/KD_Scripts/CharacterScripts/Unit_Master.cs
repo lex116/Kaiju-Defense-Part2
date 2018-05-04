@@ -154,7 +154,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public virtual void Update()
     {
-        if (IsBeingControlled)
+        if (IsBeingControlled && isDead == false)
         {
             PlayerInput();
             SpendMovement();

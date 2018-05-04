@@ -107,7 +107,7 @@ public class TestingGun : MonoBehaviour
         IDamagable objectToBeDamaged;
         Vector3 DirectionToFire;
 
-        float Acc_W_Mod = Calculated_WeaponAccuracy * AccMod;
+        float Acc_W_Mod = 1 - ((Calculated_WeaponAccuracy * AccMod) / 1000);
         #endregion 
 
         while (BurstsFired < currentWeapon.BurstCount)

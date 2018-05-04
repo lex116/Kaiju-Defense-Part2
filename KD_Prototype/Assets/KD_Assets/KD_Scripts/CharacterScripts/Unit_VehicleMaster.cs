@@ -45,7 +45,7 @@ public class Unit_VehicleMaster : Unit_Master
     {
         ChangeTeamNerve(-25);
 
-        Debug.Log(this.gameObject.name + "has died");
+        //Debug.Log(this.gameObject.name + "has died");
 
         isDead = true;
 

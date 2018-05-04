@@ -88,6 +88,7 @@ public class RoundManager : MonoBehaviour
             if (SelectedUnit.isDead == true)
             {
                 EndUnitTurn();
+                SelectedUnit = null;
             }
         }
     }
