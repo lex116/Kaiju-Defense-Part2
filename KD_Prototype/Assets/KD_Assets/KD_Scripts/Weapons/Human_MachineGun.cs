@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Human_MachineGun : Weapon
+public class Human_MachineGun : Weapon_Master
 {
     public Human_MachineGun()
     {
-        Weapon_Name = "MachineGun";
+        Item_Name = "MachineGun";
         Damage = 3;
-        damageType = DamageType.Piercing;
+        damageType = DamageType.Puncture;
         Accuracy = 80;
         ShotCount = 16;
         BurstCount = 1;
         Range = 150;
         FireRate = 0.30f;
-        thisFireMode = FireModes.SingleShot;
+        fireMode = FireModes.SingleShot;
     }
 }

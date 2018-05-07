@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,6 +7,19 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    #region Unit Component
+
+    [Header("Components")]
+    public KD_CharacterController KD_CC;
+    public Shooting shooting;
+    public Animator ShootingStateMachine;
+    public Camera playerCamera;
+    internal RoundManager roundManager;
+    public Transform dectionNodes;
+
+    #endregion
+
+    #region Unit Stats
     public enum FactionTag
     {
         Echo,
@@ -13,66 +27,18 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Russia
     }
 
+    [Header("Stats")]
+
     [SerializeField]
     public FactionTag UnitStat_FactionTag;
-
-
-    public enum DemoWeapon
-    {
-        Human_Pistol,
-        Human_Shotgun,
-        Human_MachineGun,
-        Vehicle_MachineGun
-    }
-
-    [SerializeField]
-    public DemoWeapon selectedWeapon;
-
-    public enum Actions
-    {
-        QuickShot,
-        AimedShot,
-        SuppressShot
-    }
-
-    public Actions SelectedAction;
-
-    #region Component Fields
-    public KD_CharacterController KD_CC;
-    [HideInInspector]
-    public Shooting shooting;
-    public bool IsBeingControlled;
-    public Animator ShootingStateMachine;
-    //This doesnt do anything but it could if we change the way targetting works
-    public Unit_Master TargetUnit;
-    public GameObject AimingNode;
-    //public GameObject Camera;
-    public Camera playerCamera;
-    internal RoundManager roundManager;
-    [SerializeField]
-    public Weapon currentWeapon;
-    public Unit_Master suppressionTarget;
-    public string LookedAtObject;
-    int QuickShotFOV = 60;
-    int AimedShotFOV = 15;
-    int SuppressShotFOV = 30;
-    int TargetFOV;
-    public bool isAbleToSuppress;
-
-    #endregion
-
-    #region Unit Stats
     public string UnitStat_Name;
     public int UnitStat_Initiative;
-    //[HideInInspector]
     internal int UnitStat_StartingHitPoints;
     internal int UnitStat_HitPoints;
     public int UnitStat_StartingActionPoints;
     public int UnitStat_ActionPoints;
     public int UnitStat_Reaction;
-    //Temp Value
     public int UnitStat_Accuracy;
-    //
     public int UnitStat_Willpower;
     public int UnitStat_Fitness;
     public float UnitStat_Speed;
@@ -80,22 +46,54 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public int UnitStat_VisualRange;
     public int UnitStat_StartingNerve;
     int UnitStat_Nerve;
-    bool isPanicked;
-    //
-
-    public bool isDead;
-    public Vector3 movementPosition;
-    [HideInInspector]
     internal float startingMovementPoints;
-    //internal float startingMovementPoints = 75;
     [HideInInspector]
     internal float movementPointsRemaining;
+    public float Calculated_WeaponAccuracy;
     public bool hasNoMovementRemaining;
+    bool isPanicked;
+    public bool isDead;
     #endregion
 
-    #region Calculated Weapon Stats
-    //public int Calculated_WeaponDamage;
-    public float Calculated_WeaponAccuracy;
+    #region Unit Input
+    public enum Actions
+    {
+        QuickShot,
+        AimedShot,
+        SuppressShot
+    }
+    [Header("Input")]
+    public Actions SelectedAction;
+    [HideInInspector]
+    public bool IsBeingControlled;
+    //This doesnt do anything but it could if we change the way targetting works
+    public Unit_Master TargetUnit;
+    public GameObject AimingNode;
+    public Unit_Master suppressionTarget;
+    public string LookedAtObjectString;
+    Unit_Master LookedAtUnit_Master;
+    Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
+    float DefaultFOV = 60;
+    float TargetFOV;
+    public bool isAbleToSuppress;
+    public Vector3 movementPosition;
+    #endregion
+
+    #region Unit Inventory
+    public enum DemoWeapon
+    {
+        Human_Pistol,
+        Human_Shotgun,
+        Human_MachineGun,
+        Vehicle_MachineGun
+    }
+    
+    [Header("Inventory")]
+
+    [SerializeField]
+    public DemoWeapon selectedWeapon;
+    [SerializeField]
+    public Weapon_Master currentWeapon;
     #endregion
 
     #region Utility + Setup Methods
@@ -120,22 +118,22 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         if (selectedWeapon == DemoWeapon.Human_Pistol)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Pistol");
         }
 
         if (selectedWeapon == DemoWeapon.Human_Shotgun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Shotgun");
         }
 
         if (selectedWeapon == DemoWeapon.Human_MachineGun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_MachineGun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_MachineGun");
         }
 
         if (selectedWeapon == DemoWeapon.Vehicle_MachineGun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Vehicle_MachineGun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Vehicle_MachineGun");
         }
 
 
@@ -144,12 +142,10 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void ToggleControl(bool toggle)
     {
-        //KD_CC.AimingNode.SetActive(toggle);
-        //Camera.SetActive(toggle);
         playerCamera.gameObject.SetActive(toggle);
         IsBeingControlled = toggle;
         SetWeapon();
-        SetAction_QuickShot();
+        SetAction(0);
     }
 
     public virtual void Update()
@@ -168,48 +164,39 @@ public class Unit_Master : MonoBehaviour, IDamagable
         KD_CC.InputUpdate();
 
         if (Input.GetKeyDown(KeyCode.Keypad1))
-        {
-            SetAction_QuickShot();
-        }
+            SetAction(0);
 
         if (Input.GetKeyDown(KeyCode.Keypad2))
-        {
-            SetAction_AimedShot();
-        }
+            SetAction(1);
 
         if (Input.GetKeyDown(KeyCode.Keypad3))
-        {
-            SetAction_SuppressShot();
-        }
+            SetAction(2);
 
         if (Input.GetKeyDown(KeyCode.Mouse1))
         {
-            if (SelectedAction == Actions.QuickShot)
-            {
-                ShootingStateMachine.SetInteger("ShootingMode", 1);
-                roundManager.HUD_Player_ConfirmText.SetActive(true);
-            }
-
-            if (SelectedAction == Actions.AimedShot)
-            {
-                ShootingStateMachine.SetInteger("ShootingMode", 2);
-                roundManager.HUD_Player_ConfirmText.SetActive(true);
-            }
+            bool ableToConfirm = true;
 
             if (SelectedAction == Actions.SuppressShot)
             {
                 PaintTarget();
 
-                if (suppressionTarget != null)
+                if(suppressionTarget == null)
                 {
-                    ShootingStateMachine.SetInteger("ShootingMode", 3);
-                    roundManager.HUD_Player_ConfirmText.SetActive(true);
+                    ableToConfirm = false;
                 }
+            }
+
+            if (ableToConfirm)
+            {
+                KD_CC.cantLook = true;
+                ShootingStateMachine.SetInteger("ShootingMode", (int)SelectedAction + 1);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
             }
         }
 
         if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
         {
+            KD_CC.cantMove = true;
             roundManager.HUD_Player_ConfirmText.SetActive(true);
             roundManager.EndUnitTurn();
         }
@@ -217,7 +204,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void LookAtObject()
     {
-        LookedAtObject = null;
+        LookedAtObjectString = null;
+        LookedAtUnit_Master = null;
+        LookedAtUnit_VehicleHardPoint = null;
 
         RaycastHit hit;
 
@@ -225,7 +214,14 @@ public class Unit_Master : MonoBehaviour, IDamagable
         {
             if (hit.collider.gameObject.name != null)
             {
-                LookedAtObject = hit.collider.gameObject.name;
+                LookedAtUnit_Master = hit.collider.gameObject.GetComponent<Unit_Master>();
+                LookedAtUnit_VehicleHardPoint = hit.collider.gameObject.GetComponent<Unit_VehicleHardPoint>();
+
+                if (LookedAtUnit_Master != null)
+                    LookedAtObjectString = LookedAtUnit_Master.UnitStat_Name;
+
+                if (LookedAtUnit_VehicleHardPoint != null)
+                    LookedAtObjectString = LookedAtUnit_VehicleHardPoint.Name;
             }
         }
     }
@@ -240,38 +236,27 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    public void SetAction_QuickShot()
+    public void SetAction(int selection)
     {
-        SelectedAction = Actions.QuickShot;
-        roundManager.HUD_Player_ActionText.text = "QuickShot";
-        TargetFOV = QuickShotFOV;
-    }
+        SelectedAction = (Actions)selection;
 
-    public void SetAction_AimedShot()
-    {
-        SelectedAction = Actions.AimedShot;
-        roundManager.HUD_Player_ActionText.text = "AimedShot";
-        TargetFOV = AimedShotFOV;
-    }
+        if (SelectedAction == Actions.QuickShot)
+            TargetFOV = DefaultFOV;
 
-    public void SetAction_SuppressShot()
-    {
-        SelectedAction = Actions.SuppressShot;
-        roundManager.HUD_Player_ActionText.text = "SuppressShot";
-        TargetFOV = SuppressShotFOV;
+        if (SelectedAction == Actions.AimedShot)
+            TargetFOV = DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100));
+
+        if (SelectedAction == Actions.SuppressShot)
+            TargetFOV = (DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)) / 2) ;
     }
 
     public void ChangeCameraFOV()
     {
         if (playerCamera.fieldOfView < TargetFOV)
-        {
             playerCamera.fieldOfView++;
-        }
 
         if (playerCamera.fieldOfView > TargetFOV)
-        {
             playerCamera.fieldOfView--;
-        }
     }
     #endregion
 
@@ -286,19 +271,8 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         suppressionTarget = null;
 
-        RaycastHit hit;
-
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, currentWeapon.Range))
-        {
-            Unit_Master tempUnit;
-
-            tempUnit = hit.collider.GetComponent<Unit_Master>();
-
-            if (tempUnit != null)
-            {
-                suppressionTarget = tempUnit;
-            }
-        }
+        if (LookedAtUnit_Master != null)
+            suppressionTarget = LookedAtUnit_Master;
     }
 
     public void TrackSuppressTarget()
@@ -324,26 +298,40 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void SuppressionUpdate()
     {
-        if (isAbleToSuppress == true)
+        if (isAbleToSuppress == true && isDead == false)
         {
             TrackSuppressTarget();
 
             bool losCheck = false;
 
-            RaycastHit hit;
+            // b.pos - a.pos
 
-            if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, 100f))
+            //if (Physics.Raycast(AimingNode.transform.position, suppressionTarget.transform.position - AimingNode.transform.position, out hit, 100f))
+            //{
+            //    if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+            //    {
+            //        losCheck = true;
+            //    }
+
+            //    Debug.DrawRay(AimingNode.transform.position, suppressionTarget.transform.position - AimingNode.transform.position, Color.red, 0.1f);
+            //}
+
+            foreach (Transform x in suppressionTarget.dectionNodes)
             {
-                if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+                if (losCheck == false)
                 {
-                    losCheck = true;
-                }
+                    RaycastHit hit;
 
-                else
-                {
-                    losCheck = false;
-                }
+                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, 100f))
+                    {
+                        if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+                        {
+                            losCheck = true;
+                        }
 
+                        //Debug.DrawRay(AimingNode.transform.position, x.position - AimingNode.transform.position, Color.red, 0.05f);
+                    }
+                }
             }
 
             if (shooting.isFiring == false && losCheck == true)
@@ -356,7 +344,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void SpendMovement()
     {
         movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPosition.x);
-        //movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.y - movementPos.y);
         movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPosition.z);
 
         movementPosition = this.transform.position;
@@ -365,9 +352,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         {
             movementPointsRemaining = 0;
             if (KD_CC.characterController.isGrounded)
-            {
                 KD_CC.cantMove = true;
-            }
         }
     }
 
@@ -376,6 +361,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         movementPointsRemaining = startingMovementPoints;
         hasNoMovementRemaining = false;
         KD_CC.cantMove = false;
+        KD_CC.cantLook = false;
     }
 
     public virtual void Die(string Attacker)

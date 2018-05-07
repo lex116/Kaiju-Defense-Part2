@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 {
-    int StartingArmor = 10;
+
+    public string Name;
+    int StartingArmor = 20;
     int Armor;
     int DamageResist = 1;
     bool isDestroyed;

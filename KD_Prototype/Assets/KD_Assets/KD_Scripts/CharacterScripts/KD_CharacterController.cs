@@ -5,6 +5,7 @@ using UnityEngine;
 public class KD_CharacterController : MonoBehaviour
 {
     public bool cantMove;
+    public bool cantLook;
 
     #region MouseFields
     public GameObject AimingNode;
@@ -37,7 +38,10 @@ public class KD_CharacterController : MonoBehaviour
             MovePlayer();
         }
 
-        RotateCamera();
+        if (!cantLook)
+        {
+            RotateCamera();
+        }
 
         GroundCheck();
     }

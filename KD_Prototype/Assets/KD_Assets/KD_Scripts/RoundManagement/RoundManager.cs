@@ -1,4 +1,4 @@
-﻿  using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,8 +87,8 @@ public class RoundManager : MonoBehaviour
         {
             if (SelectedUnit.isDead == true)
             {
-                EndUnitTurn();
                 SelectedUnit = null;
+                EndUnitTurn();
             }
         }
     }
@@ -96,7 +96,7 @@ public class RoundManager : MonoBehaviour
     {
         HUD_Player_staminaBar.fillAmount = SelectedUnit.movementPointsRemaining / SelectedUnit.startingMovementPoints;
 
-        HUD_Player_heldWeaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
+        HUD_Player_heldWeaponText.text = SelectedUnit.currentWeapon.Item_Name;
 
         HUD_Player_hpText.text = "Hp : " + SelectedUnit.UnitStat_HitPoints;
 
@@ -104,7 +104,9 @@ public class RoundManager : MonoBehaviour
 
         HUD_Player_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
 
-        HUD_Player_lookAtText.text = SelectedUnit.LookedAtObject;
+        HUD_Player_lookAtText.text = SelectedUnit.LookedAtObjectString;
+
+        HUD_Player_ActionText.text = "" + SelectedUnit.SelectedAction;
     }
 
     //0. Calls StartBattle()
@@ -473,7 +475,7 @@ public class RoundManager : MonoBehaviour
 
         HUD_Map_nameText.text = SelectedUnit.gameObject.name;
         HUD_Map_hpText.text = "Hp : " + SelectedUnit.UnitStat_HitPoints;
-        HUD_Map_heldWeaponText.text = SelectedUnit.currentWeapon.Weapon_Name;
+        HUD_Map_heldWeaponText.text = SelectedUnit.currentWeapon.Item_Name;
         HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
 
         ClearInitiativeOrderFeed();

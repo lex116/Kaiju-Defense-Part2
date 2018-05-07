@@ -6,9 +6,9 @@ using UnityEngine;
 public class Shooting : MonoBehaviour
 {
     ReferenceManager referenceManager;
-    internal Weapon [] Weapons;
+    internal Weapon_Master [] Weapons;
 
-    Weapon currentWeapon;
+    Weapon_Master currentWeapon;
 
     public Unit_Master unit;
 
@@ -95,6 +95,10 @@ public class Shooting : MonoBehaviour
 
     public void TestShooting(float accMod)
     {
+        RoundManager RM = FindObjectOfType<RoundManager>();
+
+        RM.AddNotificationToFeed(unit.UnitStat_Name + " takes a shot!");
+
         currentWeapon = unit.currentWeapon;
 
         unit.CalculateWeaponStats();
@@ -116,7 +120,8 @@ public class Shooting : MonoBehaviour
         IDamagable objectToBeDamaged;
         Vector3 DirectionToFire;
 
-        float Acc_W_Mod = 1 - ((unit.Calculated_WeaponAccuracy * AccMod) / 1000);
+        //float Acc_W_Mod = 1 - ((unit.Calculated_WeaponAccuracy * AccMod) / 1000);
+        float Acc_W_Mod = ((unit.Calculated_WeaponAccuracy * AccMod) / 1000) + .9f;
         #endregion 
 
         while (BurstsFired < unit.currentWeapon.BurstCount)
@@ -158,7 +163,7 @@ public class Shooting : MonoBehaviour
 
                 ShotsFired++;
 
-                if (unit.currentWeapon.thisFireMode == Weapon.FireModes.SingleShot)
+                if (unit.currentWeapon.fireMode == Weapon_Master.FireModes.SingleShot)
                 {
                     yield return new WaitForSeconds(unit.currentWeapon.FireRate);
                 }
@@ -166,7 +171,7 @@ public class Shooting : MonoBehaviour
 
             BurstsFired++;
 
-            if (unit.currentWeapon.thisFireMode == Weapon.FireModes.SpreadShot)
+            if (unit.currentWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
             {
                 yield return new WaitForSeconds(unit.currentWeapon.FireRate);
             }

@@ -17,7 +17,7 @@ public class TestingGun : MonoBehaviour
 
     public float UnitStat_Accuracy = .90f;
 
-    public Weapon currentWeapon;
+    public Weapon_Master currentWeapon;
     public GameObject DamageCube;
 
     int ShotsFired;
@@ -35,22 +35,22 @@ public class TestingGun : MonoBehaviour
     {
         if (selectedWeapon == DemoWeapon.Human_Pistol)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Pistol");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Pistol");
         }
 
         if (selectedWeapon == DemoWeapon.Human_Shotgun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_Shotgun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Shotgun");
         }
 
         if (selectedWeapon == DemoWeapon.Human_MachineGun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Human_MachineGun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_MachineGun");
         }
 
         if (selectedWeapon == DemoWeapon.Vehicle_MachineGun)
         {
-            currentWeapon = (Weapon)ScriptableObject.CreateInstance("Vehicle_MachineGun");
+            currentWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Vehicle_MachineGun");
         }
 
         InvokeRepeating("Repeatshot", 0f, 2f);
@@ -107,7 +107,8 @@ public class TestingGun : MonoBehaviour
         IDamagable objectToBeDamaged;
         Vector3 DirectionToFire;
 
-        float Acc_W_Mod = 1 - ((Calculated_WeaponAccuracy * AccMod) / 1000);
+        //float Acc_W_Mod = 1 - ((Calculated_WeaponAccuracy * AccMod) / 1000);
+        float Acc_W_Mod = ((Calculated_WeaponAccuracy * AccMod) / 1000) + .9f;
         #endregion 
 
         while (BurstsFired < currentWeapon.BurstCount)
@@ -146,7 +147,7 @@ public class TestingGun : MonoBehaviour
 
                 ShotsFired++;
 
-                if (currentWeapon.thisFireMode == Weapon.FireModes.SingleShot)
+                if (currentWeapon.fireMode == Weapon_Master.FireModes.SingleShot)
                 {
                     yield return new WaitForSeconds(currentWeapon.FireRate);
                 }
@@ -154,7 +155,7 @@ public class TestingGun : MonoBehaviour
 
             BurstsFired++;
 
-            if (currentWeapon.thisFireMode == Weapon.FireModes.SpreadShot)
+            if (currentWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
             {
                 yield return new WaitForSeconds(currentWeapon.FireRate);
             }

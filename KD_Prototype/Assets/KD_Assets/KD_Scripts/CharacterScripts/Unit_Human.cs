@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class Unit_Human : Unit_Master
 {
+    [Header("Human Fields")]
+
     public Unit_VehicleMaster pilotedVehicle;
 
     public int NumberOfGrenades;
@@ -85,53 +87,42 @@ public class Unit_Human : Unit_Master
 
     public override void PlayerInput()
     {
-        #region Change Shot type
         KD_CC.InputUpdate();
 
         if (Input.GetKeyDown(KeyCode.Keypad1))
-        {
-            SetAction_QuickShot();
-        }
+            SetAction(0);
 
         if (Input.GetKeyDown(KeyCode.Keypad2))
-        {
-            SetAction_AimedShot();
-        }
+            SetAction(1);
 
         if (Input.GetKeyDown(KeyCode.Keypad3))
-        {
-            SetAction_SuppressShot();
-        }
-
+            SetAction(2);
 
         if (Input.GetKeyDown(KeyCode.Mouse1))
         {
-            if (SelectedAction == Actions.QuickShot)
-            {
-                ShootingStateMachine.SetInteger("ShootingMode", 1);
-                roundManager.HUD_Player_ConfirmText.SetActive(true);
-            }
-
-            if (SelectedAction == Actions.AimedShot)
-            {
-                ShootingStateMachine.SetInteger("ShootingMode", 2);
-                roundManager.HUD_Player_ConfirmText.SetActive(true);
-            }
+            bool ableToConfirm = true;
 
             if (SelectedAction == Actions.SuppressShot)
             {
                 PaintTarget();
 
-                if (suppressionTarget != null)
+                if (suppressionTarget == null)
                 {
-                    ShootingStateMachine.SetInteger("ShootingMode", 3);
-                    roundManager.HUD_Player_ConfirmText.SetActive(true);
+                    ableToConfirm = false;
                 }
+            }
+
+            if (ableToConfirm)
+            {
+                KD_CC.cantLook = true;
+                ShootingStateMachine.SetInteger("ShootingMode", (int)SelectedAction + 1);
+                roundManager.HUD_Player_ConfirmText.SetActive(true);
             }
         }
 
         if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
         {
+            KD_CC.cantMove = true;
             roundManager.HUD_Player_ConfirmText.SetActive(true);
             roundManager.EndUnitTurn();
         }
@@ -141,7 +132,7 @@ public class Unit_Human : Unit_Master
         {
             Rigidbody tempGrenade = 
                 Instantiate(TestGrenade, GrenadeSpawnLocation.transform.position, GrenadeSpawnLocation.transform.rotation);
-            Human_FragGrenade tempGrenadeScript = tempGrenade.GetComponent<Human_FragGrenade>();
+            FragGrenade_Behavior tempGrenadeScript = tempGrenade.GetComponent<FragGrenade_Behavior>();
             tempGrenadeScript.Owner = this;
 
             tempGrenade.AddForce(AimingNode.transform.forward * GrenadeThrowForce);
@@ -149,7 +140,4 @@ public class Unit_Human : Unit_Master
             NumberOfGrenades--;
         }
     }
-    #endregion
-
-
 }

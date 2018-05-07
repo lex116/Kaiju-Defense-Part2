@@ -16,7 +16,7 @@ public class Unit_VehicleMaster : Unit_Master
 
         movementPosition = this.transform.position;
 
-        UnitStat_StartingHitPoints = 20;
+        UnitStat_StartingHitPoints = 100;
         startingMovementPoints = 50;
 
         ResetMovement();
@@ -56,10 +56,11 @@ public class Unit_VehicleMaster : Unit_Master
 
         //this.transform.localScale = new Vector3(1f, 0.25f, 1f);
         //temp
+        Destroy(KD_CC);
+
         foreach (Transform x in transform)
         {
             x.gameObject.AddComponent<Rigidbody>();
-            
         }
 
         roundManager.AddNotificationToFeed(Attacker + " killed " + UnitStat_Name);
