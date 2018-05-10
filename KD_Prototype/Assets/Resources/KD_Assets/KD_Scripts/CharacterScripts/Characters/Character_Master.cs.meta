@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 2fad4b5da0b16f94d873985058256528
+timeCreated: 1525909814
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - SER_Skin: {fileID: 2100000, guid: e941791e44d0ffa4cb49a6017e777fe4, type: 2}
+  - SCRAP_Skin: {fileID: 2100000, guid: f89f6be59e933424e9a3f41c391645c3, type: 2}
+  - GSR_Skin: {fileID: 2100000, guid: c383c859fa0ad82438722e91d13f22ac, type: 2}
+  - SelectedSkin: {instanceID: 0}
+  - MapIconSprite: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: dd7bb8c7a2622544fae98a4cb4758500
+timeCreated: 1525902747
+licenseType: Free
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - MapIconSprite: {fileID: 21300000, guid: 63ca5cab1f4839246a33cd8b0e7ac793, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
