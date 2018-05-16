@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 {
+    public string HardPointName;
+    internal int StartingArmor = 20;
+    public int Armor;
 
-    public string Name;
-    int StartingArmor = 20;
-    int Armor;
-    int DamageResist = 1;
-    bool isDestroyed;
+    public bool isDestroyed;
     RoundManager roundManager;
 
     void Awake()
@@ -18,12 +17,10 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
         Armor = StartingArmor;
     }
 
-    public void TakeDamage(int Damage, string Attacker)
+    public virtual void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
         if (isDestroyed == false)
         {
-            Damage = Damage - DamageResist;
-
             if (Damage > 0)
             {
                 Armor = Armor - Damage;
@@ -41,6 +38,7 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     {
         isDestroyed = true;
         this.gameObject.AddComponent<Rigidbody>();
+        this.gameObject.transform.parent = null;
 
         roundManager = FindObjectOfType<RoundManager>();
         roundManager.AddNotificationToFeed(Attacker + " destroyed " + this.name);

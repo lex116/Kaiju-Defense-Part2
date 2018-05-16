@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Human_AntiArmorRifle : Weapon_Master
+public class Weapon_Human_AntiArmorRifle : Weapon_Master
 {
-    public Human_AntiArmorRifle()
+    public Weapon_Human_AntiArmorRifle()
     {
         Item_Name = "Anti-Armor Rifle";
         Damage = 10;
-        damageType = DamageType.Puncture;
+        damageType = DamageTypes.Puncture;
         Accuracy = 50;
         ShotCount = 1;
         BurstCount = 1;

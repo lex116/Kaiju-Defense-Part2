@@ -21,7 +21,10 @@ public class Character_GSR_Fedor : Character_Master
         UnitStat_StartingNerve = 80;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_Pistol;
-        unitType = UnitTypes.Mecha;
+        selectedWeapon = Weapons.Weapon_Human_Pistol;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_HeavyArmor;
+
+        unitType = UnitTypes.Human;
     }
 }

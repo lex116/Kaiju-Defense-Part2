@@ -21,7 +21,10 @@ public class Character_SER_Thomas : Character_Master
         UnitStat_StartingNerve = 31;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_AntiArmorRifle;
+        selectedWeapon = Weapons.Weapon_Human_AntiArmorRifle;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_Uniform;
+
         unitType = UnitTypes.Human;
     }
 }

@@ -4,39 +4,50 @@ using UnityEngine;
 
 public class Unit_VehicleMaster : Unit_Master
 {
-    public override void SetUp()
+    public Unit_Human CurrentPilot;
+    public Transform CockpitPos;
+    public Transform EjectPos;
+
+    public GameObject PilotPrefabGameObject;
+    public Characters SelectedPilot;
+
+
+    public override void Awake()
     {
-        KD_CC = GetComponent<KD_CharacterController>();
-        shooting = GetComponent<Shooting>();
-        shooting.unit = this;
-        ShootingStateMachine = GetComponent<Animator>();
-        roundManager = FindObjectOfType<RoundManager>();
-
-        movementPosition = this.transform.position;
-
-        startingMovementPoints = 50;
-
-        ResetMovement();
+        SetCharacter();
+        SetUpComponents();
+        InstancePilot();
+        characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
     }
 
-    //public override void TakeDamage(int Damage, string Attacker)
-    //{
-    //    if (isDead == false)
-    //    {
-    //        Damage = Damage - DamageResist;
+    public void InstancePilot()
+    {
+        GameObject tempUnitGameObject = Instantiate(PilotPrefabGameObject, transform.position, transform.rotation);
+        Unit_Human tempUnitHuman = tempUnitGameObject.GetComponent<Unit_Human>();
+        tempUnitHuman.selectedCharacter = SelectedPilot;
+        
+        PilotEmbark(tempUnitHuman);
+    }
 
-    //        if (Damage > 0)
-    //        {
-    //            characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - Damage;
-    //        }
+    public void PilotEmbark(Unit_Human IncomingPilot)
+    {
+        CurrentPilot = IncomingPilot;
+        CurrentPilot.PilottedVehicle = this;
+        CurrentPilot.transform.position = CockpitPos.position;
+        CurrentPilot.transform.parent = this.transform;
+        CurrentPilot.MapIconCanvas.SetActive(false);
+        characterSheet.UnitStat_FactionTag = CurrentPilot.characterSheet.UnitStat_FactionTag;
+    }
 
-    //        if (characterSheet.UnitStat_HitPoints <= 0)
-    //        {
-    //            characterSheet.UnitStat_HitPoints = 0;
-    //            Die(Attacker);
-    //        }
-    //    }
-    //}
+    public void PilotDisembark(Unit_Human OutgoingPilot)
+    {
+
+    }
+
+    public void CalculateCombinedStats()
+    {
+           
+    }
 
     public override void Die(string Attacker)
     {

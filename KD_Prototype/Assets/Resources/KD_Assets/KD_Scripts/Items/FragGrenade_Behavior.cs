@@ -58,7 +58,7 @@ public class FragGrenade_Behavior : MonoBehaviour
                             damageToDeal = ExplosionDamage / 2;
                         }
 
-                        objectToBeDamaged.TakeDamage(damageToDeal, Owner.characterSheet.UnitStat_Name);
+                        objectToBeDamaged.TakeDamage(damageToDeal, Item_Master.DamageTypes.Explosive, Owner.characterSheet.UnitStat_Name);
                     }
                 }
             }

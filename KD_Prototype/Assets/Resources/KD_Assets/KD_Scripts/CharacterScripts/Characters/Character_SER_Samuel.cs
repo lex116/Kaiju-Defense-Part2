@@ -21,7 +21,10 @@ public class Character_SER_Samuel : Character_Master
         UnitStat_StartingNerve = 80;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_MachineGun;
+        selectedWeapon = Weapons.Weapon_Human_MachineGun;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_BodyArmor;
+
         unitType = UnitTypes.Human;
     }
 }

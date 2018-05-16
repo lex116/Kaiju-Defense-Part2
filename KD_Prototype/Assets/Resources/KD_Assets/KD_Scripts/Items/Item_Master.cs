@@ -7,7 +7,7 @@ public class Item_Master : ScriptableObject
     public string Item_Name;
     public int Damage;
     [SerializeField]
-    public enum DamageType
+    public enum DamageTypes
     {
         Radiation,
         Explosive,
@@ -18,7 +18,8 @@ public class Item_Master : ScriptableObject
         Light,
         Puncture
     };
-    public DamageType damageType;
+
+    public DamageTypes damageType;
     public int Ammo;
     public int AmmoType;
     public int Weight;

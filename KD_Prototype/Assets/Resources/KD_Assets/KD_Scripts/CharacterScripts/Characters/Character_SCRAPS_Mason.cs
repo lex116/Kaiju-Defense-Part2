@@ -21,7 +21,10 @@ public class Character_SCRAPS_Mason : Character_Master
         UnitStat_StartingNerve = 94;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_Shotgun;
+        selectedWeapon = Weapons.Weapon_Human_Shotgun;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_BodyArmor;
+
         unitType = UnitTypes.Human;
     }
 }

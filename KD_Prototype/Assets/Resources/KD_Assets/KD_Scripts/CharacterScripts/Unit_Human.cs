@@ -8,7 +8,9 @@ public class Unit_Human : Unit_Master
 {
     [Header("Human Fields")]
 
-    public Unit_VehicleMaster pilotedVehicle;
+    public int initiativeRoll;
+    bool initiativeRolled;
+    public Unit_VehicleMaster PilottedVehicle;
 
     #region Unit Stats
     public int UnitStat_Level;
@@ -25,41 +27,26 @@ public class Unit_Human : Unit_Master
 
     //This is where knowledges will go at a later time >>>>
 
-    #endregion
-
-    #region Utility + Setup Methods
-    public override void SetUp()
+    public override void ToggleControl(bool toggle)
     {
-        KD_CC = GetComponent<KD_CharacterController>();
-        shooting = GetComponent<Shooting>();
-        shooting.unit = this;
-        ShootingStateMachine = GetComponent<Animator>();
-        roundManager = FindObjectOfType<RoundManager>();
+        playerCamera.gameObject.SetActive(toggle);
+        IsBeingControlled = toggle;
+        SetItems();
+        SetAction(0);
+        CalculateCarryWeight();
 
-        movementPosition = this.transform.position;
-
-        //startingMovementPoints = 70;
-
-        ResetMovement();
-    }
-    #endregion
-
-    #region Combat Methods
-    public override void TakeDamage(int Damage, string Attacker)
-    {
-        if (isDead == false)
+        if (toggle == true && PilottedVehicle != null)
         {
-            ChangeTeamNerve(-Damage);
-
-            characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - Damage;
-            if (characterSheet.UnitStat_HitPoints <= 0)
-            {
-                characterSheet.UnitStat_HitPoints = 0;
-                Die(Attacker);
-            }
+            roundManager.SelectedUnit = PilottedVehicle;
+            PilottedVehicle.ToggleControl(true);
+            ToggleControl(false);
+            Debug.Log("Turn on vehiclee");
         }
     }
 
+    #endregion
+
+    #region Combat Methods
     public override void Die(string Attacker)
     {
         //Debug.Log(this.gameObject.name + "has died");
@@ -76,6 +63,24 @@ public class Unit_Human : Unit_Master
         this.transform.localScale = new Vector3(1f, 0.25f, 1f);
 
         roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
+    }
+
+    public void RollInitiative()
+    {
+        int tempCharacterReaction = characterSheet.UnitStat_Reaction;
+
+        if (PilottedVehicle != null)
+        {
+            tempCharacterReaction = (tempCharacterReaction + PilottedVehicle.characterSheet.UnitStat_Reaction) * 2;
+        }
+
+        if (!initiativeRolled)
+        {
+            initiativeRoll = UnityEngine.Random.Range(0, 99);
+            initiativeRolled = true;
+        }
+
+        characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Initiative + initiativeRoll;
     }
     #endregion
 }

@@ -148,7 +148,7 @@ public class Shooting : MonoBehaviour
                     {
                         if (objectToBeDamaged != null)
                         {
-                            objectToBeDamaged.TakeDamage(unit.equippedWeapon.Damage, unit.characterSheet.UnitStat_Name);
+                            objectToBeDamaged.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
                         }
 
                         GameObject dmgCube = Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));

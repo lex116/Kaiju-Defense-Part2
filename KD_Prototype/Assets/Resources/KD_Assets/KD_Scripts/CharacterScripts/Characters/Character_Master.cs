@@ -31,15 +31,31 @@ public class Character_Master : ScriptableObject
 
     internal int UnitStat_Initiative;
 
-    internal enum DemoWeapon
+    internal enum Weapons
     {
-        Human_Pistol,
-        Human_Shotgun,
-        Human_MachineGun,
-        Vehicle_MachineGun,
-        Human_AntiArmorRifle
+        Weapon_Human_Pistol,
+        Weapon_Human_Shotgun,
+        Weapon_Human_MachineGun,
+        Weapon_Vehicle_MachineGun,
+        Weapon_Human_AntiArmorRifle
     }
-    internal DemoWeapon selectedWeapon;
+    internal Weapons selectedWeapon;
+
+    internal enum Equipment
+    {
+        Equipment_Human_FragGrenadePack
+    }
+    internal Equipment selectedEquipment;
+
+    internal enum Armors
+    {
+        Armor_Human_Uniform,
+        Armor_Human_BodyArmor,
+        Armor_Human_HeavyArmor,
+        Armor_Vehicle_LightPlating,
+        Armor_Vehicle_HeavyPlating
+    }
+    internal Armors selectedArmor;
 
     internal enum UnitTypes
     {

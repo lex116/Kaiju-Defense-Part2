@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Human_Shotgun : Weapon_Master
+public class Weapon_Human_Shotgun : Weapon_Master
 {
-    public Human_Shotgun()
+    public Weapon_Human_Shotgun()
     {
         Item_Name = "Shotgun";
         Damage = 1;
-        damageType = DamageType.Puncture;
+        damageType = DamageTypes.Puncture;
         Accuracy = 60;
         ShotCount = 10;
         BurstCount = 3; 

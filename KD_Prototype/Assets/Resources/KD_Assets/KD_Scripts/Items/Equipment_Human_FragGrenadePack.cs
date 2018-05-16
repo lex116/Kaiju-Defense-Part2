@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Human_FragGrenadePack : Equipment_Master
+public class Equipment_Human_FragGrenadePack : Equipment_Master
 {
     public override void SetUp()
     {

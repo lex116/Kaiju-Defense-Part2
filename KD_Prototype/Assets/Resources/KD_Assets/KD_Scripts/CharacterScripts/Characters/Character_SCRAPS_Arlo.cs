@@ -21,7 +21,10 @@ public class Character_SCRAPS_Arlo : Character_Master
         UnitStat_StartingNerve = 87;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_Pistol;
-        unitType = UnitTypes.Vehicle;
+        selectedWeapon = Weapons.Weapon_Human_Pistol;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_Uniform;
+
+        unitType = UnitTypes.Human;
     }
 }

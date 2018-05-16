@@ -21,7 +21,10 @@ public class Character_SER_Kostas : Character_Master
         UnitStat_StartingNerve = 80;
         //startingMovementPoints;
 
-        selectedWeapon = DemoWeapon.Human_Pistol;
-        unitType = UnitTypes.Vehicle;
+        selectedWeapon = Weapons.Weapon_Human_Pistol;
+        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedArmor = Armors.Armor_Human_HeavyArmor;
+
+        unitType = UnitTypes.Human;
     }
 }

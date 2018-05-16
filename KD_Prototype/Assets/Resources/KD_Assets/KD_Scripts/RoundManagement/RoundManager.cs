@@ -189,11 +189,16 @@ public class RoundManager : MonoBehaviour
     {
         AllUnits = null;
 
-        Unit_Master[] tempUnits;
+        Unit_Human[] tempUnits;
 
         tempUnits = null;
 
-        tempUnits = FindObjectsOfType<Unit_Master>();
+        tempUnits = FindObjectsOfType<Unit_Human>();
+
+        foreach (Unit_Human x in tempUnits)
+        {
+            x.RollInitiative();
+        }
 
         AllUnits = tempUnits.OrderByDescending(x => x.characterSheet.UnitStat_Initiative).ToArray();
 
@@ -257,7 +262,7 @@ public class RoundManager : MonoBehaviour
     public void AddAction(TimeScaleAction TSA_ToBeAdded)
     {
         SelectedUnit.IsBeingControlled = false;
-
+         
         int priorityOffset = 0;
 
         TSA_ToBeAdded.timeScalePosition = TSA_ToBeAdded.timeScaleOffSet + CurrentTime;
@@ -340,7 +345,7 @@ public class RoundManager : MonoBehaviour
     }
     IEnumerator SelectNextUnitRoutine()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForFixedUpdate();
 
         SelectedUnitIndex++;
 
@@ -353,6 +358,8 @@ public class RoundManager : MonoBehaviour
 
         else
         {
+            SelectedUnit.ToggleControl(false);
+
             if (initiativeOrder[SelectedUnitIndex].isDead == false)
             {
                 SelectedUnit = initiativeOrder[SelectedUnitIndex];

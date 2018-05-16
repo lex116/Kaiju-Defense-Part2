@@ -7,13 +7,9 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
-    public MeshRenderer[] UnitSkins;
+    public GameObject MapIconCanvas;
 
-    public Image MapIconHighlight;
-
-    public Image UnitIcon;
-    Quaternion UnitIconOrientation = new Quaternion(0, -90, -90, 0);
-
+    #region Unit Components
     public enum Characters
     {
         Character_SER_Samuel,
@@ -26,24 +22,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Character_SCRAPS_Arlo,
         Character_SCRAPS_Mason,
         Character_SCRAPS_Noah,
+        Character_SCRAPS_Mecha_Flyboy,
         Character_GSR_Fedor,
         Character_GSR_Khabib,
         Character_GSR_Rustam
     }
-
     public Characters selectedCharacter;
-
     public Character_Master characterSheet;
-
-    //temp
-    public Equipment_Master equippedEquipment;
-
-    public Transform DeployableSpawnLocation;
-    //temp 1000
-    int DeployableThrowForce = 1500;
-
-    #region Unit Components
-
     [Header("Components")]
     public KD_CharacterController KD_CC;
     public Shooting shooting;
@@ -51,18 +36,22 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Camera playerCamera;
     internal RoundManager roundManager;
     public Transform dectionNodes;
-
+    public MeshRenderer[] UnitSkins;
+    public Image MapIconHighlight;
+    public Image UnitIcon;
+    Quaternion UnitIconOrientation = new Quaternion(0, -90, -90, 0);
+    public Transform DeployableSpawnLocation;
+    int DeployableThrowForce = 1500;
     #endregion
-
+    
     #region Unit Stats
-
     [Header("Stats")]
     internal float startingMovementPoints;
     [HideInInspector]
     internal float movementPointsRemaining;
     public float Calculated_WeaponAccuracy;
     public bool hasNoMovementRemaining;
-    bool isPanicked;
+    internal bool isPanicked;
     public bool isDead;
     #endregion
 
@@ -90,83 +79,62 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Vector3 movementPosition;
     #endregion
 
-    #region Unit Inventory
-
-    
+    #region Unit Inventory    
     [Header("Inventory")]
-
-    [SerializeField]
     public Weapon_Master equippedWeapon;
-
+    public Equipment_Master equippedEquipment;
     public Armor_Master equippedArmor;
     #endregion
 
     #region Utility + Setup Methods
-    public void Awake()
+    public virtual void Awake()
     {
         SetCharacter();
-        SetUp();
+        SetUpComponents();
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
     }
 
     public void SetCharacter()
     {
-        characterSheet = (Character_Master)ScriptableObject.CreateInstance(((Characters)selectedCharacter).ToString());
+        characterSheet = (Character_Master)ScriptableObject.CreateInstance((selectedCharacter).ToString());
     }
 
-    public virtual void SetUp()
+    public void SetUpComponents()
     {
-        //
+        KD_CC = GetComponent<KD_CharacterController>();
+        shooting = GetComponent<Shooting>();
+        shooting.unit = this;
+        ShootingStateMachine = GetComponent<Animator>();
+        roundManager = FindObjectOfType<RoundManager>();
+        movementPosition = this.transform.position;
+
+        ResetMovement();
     }
 
     public void Start()
     {
-        SetWeapon();
+        SetItems();
     }
 
-    public void SetWeapon()
+    public void SetItems()
     {
-        if (characterSheet.selectedWeapon == Character_Master.DemoWeapon.Human_Pistol)
-        {
-            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Pistol");
-        }
+        equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
+        equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
+        equippedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.selectedArmor.ToString());
 
-        if (characterSheet.selectedWeapon == Character_Master.DemoWeapon.Human_Shotgun)
-        {
-            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_Shotgun");
-        }
-
-        if (characterSheet.selectedWeapon == Character_Master.DemoWeapon.Human_MachineGun)
-        {
-            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_MachineGun");
-        }
-
-        if (characterSheet.selectedWeapon == Character_Master.DemoWeapon.Vehicle_MachineGun)
-        {
-            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Vehicle_MachineGun");
-        }
-
-        if (characterSheet.selectedWeapon == Character_Master.DemoWeapon.Human_AntiArmorRifle)
-        {
-            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance("Human_AntiArmorRifle");
-        }
-
-        equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance("Human_FragGrenadePack");
         equippedEquipment.DeployableSpawnLocation = DeployableSpawnLocation;
         equippedEquipment.DeployableThrowForce = DeployableThrowForce;
         equippedEquipment.DeployableOwner = this;
 
-        equippedArmor = (Armor_Master)ScriptableObject.CreateInstance("Human_Uniform");
-
         CalculateWeaponStats();
     }
 
-    public void ToggleControl(bool toggle)
+    public virtual void ToggleControl(bool toggle)
     {
         playerCamera.gameObject.SetActive(toggle);
         IsBeingControlled = toggle;
-        SetWeapon();
+        SetItems();
         SetAction(0);
         CalculateCarryWeight();
     }
@@ -256,12 +224,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
                     LookedAtObjectString = LookedAtUnit_Master.characterSheet.UnitStat_Name;
 
                 if (LookedAtUnit_VehicleHardPoint != null)
-                    LookedAtObjectString = LookedAtUnit_VehicleHardPoint.Name;
+                    LookedAtObjectString = LookedAtUnit_VehicleHardPoint.HardPointName;
             }
         }
     }
 
-    public void CalculateWeaponStats()
+    public virtual void CalculateWeaponStats()
     {
         Calculated_WeaponAccuracy = (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy) / 2;
 
@@ -298,16 +266,32 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
             UnitIcon.rectTransform.rotation = UnitIconOrientation;
     }
+
+    public virtual void CalculateCarryWeight()
+    {
+        float CarryCapacity = characterSheet.UnitStat_Fitness / 4;
+        float CarryWeight = equippedWeapon.Weight + equippedEquipment.Weight + equippedArmor.Weight;
+        float CarryWeightDifference = CarryCapacity - CarryWeight;
+        float Encumberance = CarryWeightDifference / CarryCapacity;
+
+        startingMovementPoints = characterSheet.UnitStat_Fitness;
+        movementPointsRemaining = startingMovementPoints * Encumberance;
+    }
     #endregion
 
-    #region Combat Methods
-    public virtual void TakeDamage(int Damage, string Attacker)
+    #region Combat Methods  
+    public virtual void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
         if (isDead == false)
         {
-            ChangeTeamNerve(-Damage);
+            Damage = Damage - (equippedArmor.DamageResistance[(int)DamageType]);
 
-            characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - Damage;
+            if (Damage > 0)
+            {
+                ChangeTeamNerve(-Damage);
+                characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - Damage;
+            }
+
             if (characterSheet.UnitStat_HitPoints <= 0)
             {
                 characterSheet.UnitStat_HitPoints = 0;
@@ -360,7 +344,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
                 {
                     RaycastHit hit;
 
-                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, equippedWeapon.Range))
+                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, equippedWeapon.Range, 13))
                     {
                         if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
                         {
@@ -412,7 +396,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
             characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
         }
 
-        if (change < 0 && RollStat(characterSheet.UnitStat_Willpower, 1) == false)
+        if (change < 0 && RollStatCheck(characterSheet.UnitStat_Willpower, 1) == false)
         {
             characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
         }
@@ -455,7 +439,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    public bool RollStat(int Stat, int StatMod)
+    public bool RollStatCheck(int Stat, int StatMod)
     {
         int Roll = UnityEngine.Random.Range(0, 99);
 
@@ -470,15 +454,5 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    public void CalculateCarryWeight()
-    {
-        float CarryCapacity = characterSheet.UnitStat_Fitness / 4;
-        float CarryWeight = equippedWeapon.Weight + equippedEquipment.Weight + equippedArmor.Weight;
-        float CarryWeightDifference = CarryCapacity - CarryWeight;
-        float Encumberance = CarryWeightDifference / CarryCapacity;
-
-        startingMovementPoints = characterSheet.UnitStat_Fitness;
-        movementPointsRemaining = startingMovementPoints * Encumberance;
-    }
     #endregion
 } 
