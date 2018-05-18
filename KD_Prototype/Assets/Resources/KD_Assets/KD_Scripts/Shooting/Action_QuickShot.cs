@@ -12,6 +12,6 @@ public class Action_QuickShot : TimeScaleAction
 
     public override void ActionEffect()
     {
-        ActingUnit.shooting.TestShooting(.95f);
+        ActingUnit.shooting.TestShooting(ActingUnit.QuickShotAccMod);
     }
 }

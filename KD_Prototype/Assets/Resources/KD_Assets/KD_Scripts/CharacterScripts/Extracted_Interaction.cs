@@ -31,7 +31,7 @@ public class Extracted_Interaction : MonoBehaviour
         }
         else
         {
-            UIDisplayText.text = InteractableToActivate.DisplayText;
+            //UIDisplayText.text = InteractableToActivate.DisplayText;
             UIDisplayText.gameObject.SetActive(true);
         }
     }

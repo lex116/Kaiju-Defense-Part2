@@ -13,11 +13,12 @@ public class RoundManager : MonoBehaviour
     public Material[] Skins;
     [SerializeField]
     public Sprite[] MapUnitIcons;
-    public Color[] MapIconColors =
+    internal Color[] MapIconColors =
     {
         Color.blue,
         Color.yellow,
-        Color.red
+        Color.red,
+        Color.white
     };
     #endregion
 
@@ -44,16 +45,29 @@ public class RoundManager : MonoBehaviour
 
     #region Hud Fields
     [Header("Hud Fields")]
+    internal float HUD_Player_UpdateRate = 200;
+
     public GameObject PlayerHUD;
+    public GameObject PlayerTargetHUD;
 
     public Image HUD_Player_staminaBar;
-    public Text HUD_Player_heldWeaponText;
+    public Image HUD_Player_healthBar;
+    public Image HUD_Player_nerveBar;
     public Text HUD_Player_hpText;
+    public Text HUD_Player_staminaText;
+    public Text HUD_Player_nerveText;
     public Text HUD_Player_nameText;
+    public Text HUD_Player_heldWeaponText;
+    public Text HUD_Player_heldEquipmentText;
     public Text HUD_Player_accText;
-    public Text HUD_Player_lookAtText;
     public Text HUD_Player_ActionText;
     public GameObject HUD_Player_ConfirmText;
+
+    public Text HUD_Player_Target_nameText;
+    public Image HUD_Player_Target_healthBar;
+    public Image HUD_Player_Target_nerveBar;
+    public Text HUD_Player_Target_hpText;
+    public Text HUD_Player_Target_nerveText;
 
     public RawImage MiniMap;
 
@@ -68,12 +82,24 @@ public class RoundManager : MonoBehaviour
 
     internal float MiniMap_Target_PosX = 0;
     internal float MiniMap_Target_posY = 0;
-    internal float MiniMap_Target_Width = 800;
-    internal float MiniMap_Target_Height = 800;
+    internal float MiniMap_Target_Width = 900;
+    internal float MiniMap_Target_Height = 900;
 
     bool miniMapIsDefault = true;
 
     public float MapChangeRate = 10;
+
+    internal float HUD_Player_DisplayAcc;
+    internal float HUD_Player_TargetAcc;
+    internal float HUD_Player_DisplayHp;
+    internal float HUD_Player_TargetHp;
+    internal float HUD_Player_DisplayNerve;
+    internal float HUD_Player_TargetNerve;
+
+    internal float HUD_Player_Target_DisplayHp;
+    internal float HUD_Player_Target_TargetHp;
+    internal float HUD_Player_Target_DisplayNerve;
+    internal float HUD_Player_Target_TargetNerve;
     #endregion
 
     #region InitiativeFields
@@ -83,6 +109,7 @@ public class RoundManager : MonoBehaviour
     public int SelectedUnitIndex;
     [SerializeField]
     List<Unit_Master> initiativeOrder = new List<Unit_Master>();
+    public bool TurnIsEnding;
     #endregion
 
     #region TimeScaleFields
@@ -96,13 +123,14 @@ public class RoundManager : MonoBehaviour
 
     #endregion
 
-    #region Methods
 
+    #region Utility Methods
     // Mouse Locking
     void Awake()
     {
         Cursor.lockState = CursorLockMode.Locked;
     }
+
     void Update()
     {
         if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false)
@@ -115,507 +143,247 @@ public class RoundManager : MonoBehaviour
             PlayerHudUpdate();
         }
 
-        if (SelectedUnit != null)
+        if (SelectedUnit != null && SelectedUnit.isDead == true && TurnIsEnding == false)
         {
-            if (SelectedUnit.isDead == true)
-            {
-                SelectedUnit = null;
-                EndUnitTurn();
-            }
+            SelectedUnit = null;
+            EndUnitTurn();
         }
 
         ChangeMiniMapSize();
     }
+    #endregion
+
+    #region Hud Methods
+
     void PlayerHudUpdate()
     {
-        HUD_Player_staminaBar.fillAmount = SelectedUnit.movementPointsRemaining / SelectedUnit.startingMovementPoints;
-
         HUD_Player_heldWeaponText.text = SelectedUnit.equippedWeapon.Item_Name;
 
-        HUD_Player_hpText.text = "Hp : " + SelectedUnit.characterSheet.UnitStat_HitPoints;
+        HUD_Player_heldEquipmentText.text = SelectedUnit.equippedEquipment.Item_Name + ": " + SelectedUnit.equippedEquipment.Ammo;
 
         HUD_Player_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
 
-        HUD_Player_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
-
-        HUD_Player_lookAtText.text = SelectedUnit.LookedAtObjectString;
-
         HUD_Player_ActionText.text = "" + SelectedUnit.SelectedAction;
+
+        PlayerStatUpdates();
+
+        ToggleTargetHUD();
     }
 
-    //0. Calls StartBattle()
-    void Start()
+    public void ToggleTargetHUD()
     {
-        StartBattle();
-        ClearNotificationFeed();
-        ClearInitiativeOrderFeed();
-    }
-
-    //1. Starts the battle scenario, playing a cinematic or text etc, then calls StartRound()
-    void StartBattle()
-    {
-        AssignTeamColors();
-        SetMiniMapDefaults();
-
-        StartRound();
-    }
-
-
-    //2. Order all units in the scene by initiative, remove dead units, select the first unit
-    void StartRound()
-    {
-        //OrderUnitsByInitiative();
-        //DestroyDeadUnits();
-        //SelectTheFirstUnit();
-
-        //Gives enough time for the input to go through and prevents the next character from being skipped
-        StartCoroutine(SRTestRoutine());
-    }
-    IEnumerator SRTestRoutine()
-    {
-        yield return new WaitForSeconds(1f);
-
-        OrderUnitsByInitiative();
-        DestroyDeadUnits();
-        SelectTheFirstUnit();
-        ResetUnitMovement();
-        GiveAllUnitsNerve();
-
-        ActivateMapCam();
-    }
-    #region Start Round Methods
-    //2a. Find all units in the scene, order them by initiative ignoring the dead units
-    void OrderUnitsByInitiative()
-    {
-        AllUnits = null;
-
-        Unit_Human[] tempUnits;
-
-        tempUnits = null;
-
-        tempUnits = FindObjectsOfType<Unit_Human>();
-
-        foreach (Unit_Human x in tempUnits)
+        if (SelectedUnit.LookedAtUnit_Master != null || SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
         {
-            x.RollInitiative();
-        }
-
-        AllUnits = tempUnits.OrderByDescending(x => x.characterSheet.UnitStat_Initiative).ToArray();
-
-        initiativeOrder.Clear();
-
-        foreach (Unit_Master x in AllUnits)
-        {
-            if (x.isDead != true)
-            {
-                initiativeOrder.Add(x);
-            }
-        }
-    }
-
-    //2b. Remove all dead units from the scene
-    void DestroyDeadUnits()
-    {
-        foreach (Unit_Master x in AllUnits)
-        {
-            if (x.isDead == true)
-            {
-                Destroy(x.gameObject);
-            }
-        }
-    }
-
-    //2c. Select the first unit to take control of
-    void SelectTheFirstUnit()
-    {
-        SelectedUnit = null;
-
-        SelectedUnitIndex = 0;
-
-        SelectedUnit = initiativeOrder[SelectedUnitIndex];
-
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            if (x != SelectedUnit)
-            {
-                x.ToggleControl(false);
-            }
-        }
-
-        //SelectedUnit.ToggleControl(true);
-    }
-
-    //2d. Restore all movement points to all units and reset can move bool
-    void ResetUnitMovement()
-    {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            x.ResetMovement();
-        }
-    }
-    #endregion
-
-
-    //3. Unit adds an action to the timescale moving the round forward
-    #region Units Adding Actions/ Unit Turns Methods
-    // Adds an action to the list to be called later, sets it's priority
-    public void AddAction(TimeScaleAction TSA_ToBeAdded)
-    {
-        SelectedUnit.IsBeingControlled = false;
-         
-        int priorityOffset = 0;
-
-        TSA_ToBeAdded.timeScalePosition = TSA_ToBeAdded.timeScaleOffSet + CurrentTime;
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == TSA_ToBeAdded.timeScalePosition)
-            {
-                priorityOffset++;
-            }
-        }
-
-        TSA_ToBeAdded.timeScalePriority = priorityOffset;
-
-        TimeScaleOrder.Add(TSA_ToBeAdded);
-
-        EndUnitTurn();
-    }
-
-    //Ends the unit's turn and calls FindNextActionsToActivate as a result
-    public void EndUnitTurn()
-    {
-        //SelectedUnit = null;
-        MiniMapTransformReset();
-        FindNextActionsToActivate();
-    }
-
-    // Finds all the actions that should be called this time unit
-    public void FindNextActionsToActivate()
-    {
-        QueuedActions.Clear();
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == CurrentTime)
-            {
-                QueuedActions.Add(x);
-            }
-        }
-
-        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
-
-        ActivateActions();
-    }
-
-    // Activates the actions that should be activated this time unit
-    public void ActivateActions()
-    {
-        StartCoroutine(ActivateActionsRoutine());
-    }
-    IEnumerator ActivateActionsRoutine()
-    {
-        foreach (TimeScaleAction x in ActionsToActivate)
-        {
-            if (x.ActingUnit.isDead == false)
-            {
-                x.ActionEffect();
-
-                while (x.ActingUnit.shooting.isFiring)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-
-                yield return new WaitForSeconds(1f);
-            }
-        }
-
-        ActionsToActivate = null;
-
-
-        //Temp
-        SelectNextUnit();
-        IncrememntTime();
-    }
-
-    //Selects next unit in the initiative order
-    void SelectNextUnit()
-    {
-        StartCoroutine(SelectNextUnitRoutine());
-    }
-    IEnumerator SelectNextUnitRoutine()
-    {
-        yield return new WaitForFixedUpdate();
-
-        SelectedUnitIndex++;
-
-        //Debug.Log("unit index: " + SelectedUnitIndex);
-
-        if (SelectedUnitIndex >= initiativeOrder.Count)
-        {
-            EndRound();
+            PlayerTargetHUD.SetActive(true);
+            TargetStatUpdates();
         }
 
         else
         {
-            SelectedUnit.ToggleControl(false);
+            PlayerTargetHUD.SetActive(false);
+            ResetTargetHUD();
+        }
+    }
 
-            if (initiativeOrder[SelectedUnitIndex].isDead == false)
+    #region PlayerStatUpdates
+    void PlayerStatUpdates()
+    {
+        UpdatePlayerStamina();
+        UpdatePlayerNerve();
+        UpdatePlayerHp();
+        UpdatePlayerAcc();
+    }
+
+    void UpdatePlayerStamina()
+    {
+        HUD_Player_staminaBar.fillAmount = SelectedUnit.movementPointsRemaining / SelectedUnit.startingMovementPoints;
+
+        HUD_Player_staminaText.text = ((int)SelectedUnit.movementPointsRemaining).ToString();
+    }
+    void UpdatePlayerNerve()
+    {
+        float currentNerve = 0;
+        float startingNerve = 0;
+
+        if (SelectedUnit.characterSheet.unitType == Character_Master.UnitTypes.Human)
+        {
+            currentNerve = SelectedUnit.characterSheet.UnitStat_Nerve;
+            startingNerve = SelectedUnit.characterSheet.UnitStat_StartingNerve;
+
+            HUD_Player_nerveText.text = SelectedUnit.characterSheet.UnitStat_Nerve.ToString();
+        }
+
+        if (SelectedUnit.characterSheet.unitType == Character_Master.UnitTypes.Vehicle ||
+            SelectedUnit.characterSheet.unitType == Character_Master.UnitTypes.Mecha)
+        {
+            Unit_VehicleMaster SelectedVehicle = (Unit_VehicleMaster)SelectedUnit;
+            currentNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve;
+            startingNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_StartingNerve;
+
+            HUD_Player_nerveText.text = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve.ToString();
+        }
+
+        HUD_Player_TargetNerve = (currentNerve / startingNerve) * 100;
+
+        if (HUD_Player_DisplayNerve > HUD_Player_TargetNerve)
+            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve - 0.01f * HUD_Player_UpdateRate;
+
+        if (HUD_Player_DisplayNerve < HUD_Player_TargetNerve)
+            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve + 0.01f * HUD_Player_UpdateRate;
+
+        HUD_Player_nerveBar.fillAmount = HUD_Player_DisplayNerve / 100;
+    }
+    void UpdatePlayerHp()
+    {
+        float currentHp = SelectedUnit.characterSheet.UnitStat_HitPoints;
+        float startingHp = SelectedUnit.characterSheet.UnitStat_StartingHitPoints;
+
+        HUD_Player_TargetHp = (currentHp / startingHp) * 100;
+
+        if (HUD_Player_DisplayHp > HUD_Player_TargetHp)
+            HUD_Player_DisplayHp = HUD_Player_DisplayHp - 0.01f * HUD_Player_UpdateRate;
+
+        if (HUD_Player_DisplayHp < HUD_Player_TargetHp)
+            HUD_Player_DisplayHp = HUD_Player_DisplayHp + 0.01f * HUD_Player_UpdateRate;
+
+        HUD_Player_healthBar.fillAmount = HUD_Player_DisplayHp / 100;
+
+        HUD_Player_hpText.text = SelectedUnit.characterSheet.UnitStat_HitPoints.ToString();
+    }
+    void UpdatePlayerAcc()
+    {
+        HUD_Player_TargetAcc = SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAcc;
+
+        if (HUD_Player_DisplayAcc > HUD_Player_TargetAcc)
+            HUD_Player_DisplayAcc--;
+
+        if (HUD_Player_DisplayAcc < HUD_Player_TargetAcc)
+            HUD_Player_DisplayAcc++;
+
+        HUD_Player_accText.text = (int)HUD_Player_DisplayAcc + "%";
+    }
+    #endregion
+
+    #region TargetStatUpdates
+    void TargetStatUpdates()
+    {
+        UpdatePlayerTargetName();
+        UpdatePlayerTargetHp();
+        UpdatePlayerTargetNerve();
+    }
+
+    void UpdatePlayerTargetName()
+    {
+        if (SelectedUnit.LookedAtUnit_Master != null)
+            HUD_Player_Target_nameText.text = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_Name;
+
+        if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
+            HUD_Player_Target_nameText.text = SelectedUnit.LookedAtUnit_VehicleHardPoint.HardPointName;
+    }
+    void UpdatePlayerTargetHp()
+    {
+        float currentHp = 0;
+        float startingHp = 0;
+
+        if (SelectedUnit.LookedAtUnit_Master != null)
+        {
+            currentHp = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_HitPoints;
+            startingHp = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_StartingHitPoints;
+
+            HUD_Player_Target_hpText.text = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_HitPoints.ToString();
+        }
+
+        if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
+        {
+            currentHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.Armor;
+            startingHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.StartingArmor;
+
+            HUD_Player_Target_hpText.text = SelectedUnit.LookedAtUnit_VehicleHardPoint.Armor.ToString();
+        }
+
+        HUD_Player_Target_TargetHp = (currentHp / startingHp) * 100;
+
+        if (HUD_Player_Target_DisplayHp > HUD_Player_Target_TargetHp)
+            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp - 0.01f * HUD_Player_UpdateRate;
+
+        if (HUD_Player_Target_DisplayHp < HUD_Player_Target_TargetHp)
+            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp + 0.01f * HUD_Player_UpdateRate;
+
+        HUD_Player_Target_healthBar.fillAmount = HUD_Player_Target_DisplayHp / 100;
+    }
+    void UpdatePlayerTargetNerve()
+    {
+        float currentNerve = 0;
+        float startingNerve = 0;
+
+        if (SelectedUnit.LookedAtUnit_Master != null)
+        {
+            currentNerve = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_Nerve;
+            startingNerve = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_StartingNerve;
+
+            HUD_Player_Target_nerveText.text = SelectedUnit.LookedAtUnit_Master.characterSheet.UnitStat_Nerve.ToString();
+        }
+
+        if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
+        {
+
+            if (SelectedUnit.LookedAtUnit_VehicleHardPoint.OwnerVehicle.CurrentPilot_Character != null)
             {
-                SelectedUnit = initiativeOrder[SelectedUnitIndex];
+                currentNerve = SelectedUnit.LookedAtUnit_VehicleHardPoint.OwnerVehicle.CurrentPilot_Character.UnitStat_Nerve;
+                startingNerve = SelectedUnit.LookedAtUnit_VehicleHardPoint.OwnerVehicle.CurrentPilot_Character.UnitStat_StartingNerve;
 
-                for (int i = 0; i < initiativeOrder.Count; i++)
-                {
-                    if (initiativeOrder[i] != SelectedUnit)
-                    {
-                        initiativeOrder[i].ToggleControl(false);
-                    }
-                }
-
-                //ActivateNewUnit();
-                ActivateMapCam();
+                HUD_Player_Target_nerveText.text = SelectedUnit.LookedAtUnit_VehicleHardPoint.OwnerVehicle.CurrentPilot_Character.UnitStat_Nerve.ToString();
             }
 
             else
             {
-                SelectNextUnit();
+                currentNerve = 0;
+                startingNerve = 0;
+
+                HUD_Player_Target_nerveText.text = "0";
             }
+
         }
-    }
 
+        HUD_Player_Target_TargetNerve = (currentNerve / startingNerve) * 100;
 
-    //Actitvate Map cam
+        if (HUD_Player_Target_DisplayNerve > HUD_Player_Target_TargetNerve)
+            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve - 0.01f * HUD_Player_UpdateRate;
 
+        if (HUD_Player_Target_DisplayNerve < HUD_Player_Target_TargetNerve)
+            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve + 0.01f * HUD_Player_UpdateRate;
 
-    //Activate the unit to be controlled
-    void ActivateNewUnit()
-    {
-        SelectedUnit.ToggleControl(true);
-        ActivateSuppressors();
-    }
-
-    //Activates the units who are suppress firing the controlled unit
-    public void ActivateSuppressors()
-    {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            if (x.suppressionTarget == SelectedUnit)
-            {
-                x.isAbleToSuppress = true;
-            }
-            else
-            {
-                x.isAbleToSuppress = false;
-            }
-        }
-    }
-
-    // Steps the timescale forward
-    void IncrememntTime()
-    {
-        CurrentTime++;
+        HUD_Player_Target_nerveBar.fillAmount = HUD_Player_Target_DisplayNerve / 100;
     }
     #endregion
 
-    //4. Once all units have had turn the RM cleans up and restarts at step 2.
-    #region End Turn Methods
-    //Any clean up, then call RoundProcess
-    void EndRound()
+    void ResetPlayerHUD()
     {
-        ActivateRemainingActions();
-    }
-    //activate all remaining actions
-    void ActivateRemainingActions()
-    {
-        StartCoroutine(ActivateRemainingActionsRoutine());
-    }
-    IEnumerator ActivateRemainingActionsRoutine()
-    {
-        QueuedActions.Clear();
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == CurrentTime)
-            {
-                QueuedActions.Add(x);
-            }
-        }
-
-        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
-
-
-        foreach (TimeScaleAction x in ActionsToActivate)
-        {
-            if (x.ActingUnit.isDead == false)
-            {
-                x.ActionEffect();
-
-                while (x.ActingUnit.shooting.isFiring)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-
-                yield return new WaitForSeconds(1f);
-            }
-        }
-
-        ActionsToActivate = null;
-
-        int numberOfRemainingActions = 0;
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition > CurrentTime)
-            {
-                numberOfRemainingActions++;
-            }
-        }
-
-        if (numberOfRemainingActions > 0)
-        {
-            IncrememntTime();
-            ActivateRemainingActions();
-        }
-
-        if (numberOfRemainingActions == 0)
-        {
-            ClearOldActions();
-            ResetAllUnitStateMachines();
-
-            AddNotificationToFeed("End of Round");
-
-            StartRound();
-        }
+        HUD_Player_DisplayAcc = 0;
+        HUD_Player_TargetAcc = 0;
+        HUD_Player_DisplayHp = 0;
+        HUD_Player_TargetHp = 0;
+        HUD_Player_DisplayNerve = 0;
+        HUD_Player_TargetNerve = 0;
     }
 
-    //Removes used up actions from the timescale
-    public void ClearOldActions()
+    void ResetTargetHUD()
     {
-        TimeScaleOrder.RemoveAll(TimeScaleAction => TimeScaleAction.timeScalePosition <= CurrentTime);
+        HUD_Player_Target_DisplayHp = 0;
+        HUD_Player_Target_TargetHp = 0;
+        HUD_Player_Target_DisplayNerve = 0;
+        HUD_Player_Target_TargetNerve = 0;
     }
-    //Sets all units back to waiting before the next round
-    public void ResetAllUnitStateMachines()
+
+    public void AssignTeamColors(Unit_Master UnitToColor)
     {
-        foreach (Unit_Master x in initiativeOrder)
+        foreach (MeshRenderer x in UnitToColor.UnitSkins)
         {
-            //x.ShootingStateMachine.SetInteger("ShootingMode", 0);
-            x.ShootingStateMachine.SetBool("isSPR", false);
-            x.ShootingStateMachine.SetBool("Reset", true);
-        }
-    }
-    #endregion
-
-    public void ActivateMapCam()
-    {
-        DeactivateSuppressors();
-
-        isInMapMode = true;
-        Cursor.lockState = CursorLockMode.None;
-
-        PlayerHUD.gameObject.SetActive(false);
-
-        MapHUD.SetActive(true);
-        MapCamera.targetTexture = null;
-
-        HUD_Map_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
-        HUD_Map_hpText.text = "Hp : " + SelectedUnit.characterSheet.UnitStat_HitPoints;
-        HUD_Map_heldWeaponText.text = SelectedUnit.equippedWeapon.Item_Name;
-        HUD_Map_accText.text = "Acc: " + SelectedUnit.Calculated_WeaponAccuracy + "%";
-
-        ClearInitiativeOrderFeed();
-
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].text = x.characterSheet.UnitStat_Name;
-        }
-    }
-
-    public void DeactivateMapCam()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        isInMapMode = false;
-
-        PlayerHUD.gameObject.SetActive(true);
-
-        MapHUD.SetActive(false);
-        MapCamera.targetTexture = (RenderTexture)MiniMap.texture;
-
-        HUD_Player_ConfirmText.SetActive(false);
-
-        ActivateNewUnit();
-    }
-
-    public void DeactivateSuppressors()
-    {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            x.isAbleToSuppress = false;
-        }
-    }
-
-    #endregion
-
-    public void AddNotificationToFeed(string note)
-    {
-        foreach (Text x in KillFeedBoxes)
-        {
-            if (KillFeedBoxes.IndexOf(x) <= KillFeedBoxes.Count - 2)
-            {
-                x.text = KillFeedBoxes[KillFeedBoxes.IndexOf(x) + 1].text;
-            }
+            x.material = Skins[(int)UnitToColor.characterSheet.UnitStat_FactionTag];
         }
 
-        KillFeedBoxes[KillFeedBoxes.Count - 1].text = note;
-    }
-
-    public void ClearNotificationFeed()
-    {
-        foreach (Text x in KillFeedBoxes)
-        {
-            x.text = "";
-        }
-    }
-
-    public void ClearInitiativeOrderFeed()
-    {
-        foreach (Text x in InitiatveOrderFeedBoxes)
-        {
-            x.text = "";
-        }
-    }
-
-    public void GiveAllUnitsNerve()
-    {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            x.ChangeNerve(5);
-        }
-    }
-
-    public void AssignTeamColors()
-    {
-        Unit_Master[] UnitsToColor = FindObjectsOfType<Unit_Master>();
-
-        foreach (Unit_Master x in UnitsToColor)
-        {
-            foreach (MeshRenderer y in x.UnitSkins)
-            {
-                y.material = Skins[(int)x.characterSheet.UnitStat_FactionTag];
-            }
-
-            x.MapIconHighlight.color = MapIconColors[(int)x.characterSheet.UnitStat_FactionTag];
-
-            x.UnitIcon.sprite = MapUnitIcons[(int)x.characterSheet.unitType];
-        }
-    }
-
-    public void SetMiniMapDefaults()
-    {
-        MiniMap_Default_posX = MiniMap.rectTransform.anchoredPosition.x;
-        MiniMap_Default_posY = MiniMap.rectTransform.anchoredPosition.y;
-        MiniMap_Default_Width = MiniMap.rectTransform.sizeDelta.x;
-        MiniMap_Default_Height = MiniMap.rectTransform.sizeDelta.y;
-        miniMapIsDefault = true;
+        UnitToColor.MapIconHighlight.color = MapIconColors[(int)UnitToColor.characterSheet.UnitStat_FactionTag];
+        UnitToColor.UnitIcon.sprite = MapUnitIcons[(int)UnitToColor.characterSheet.unitType];
     }
 
     public void ToggleMiniMap()
@@ -637,25 +405,25 @@ public class RoundManager : MonoBehaviour
         {
             #region return to default 
 
-            if (MiniMap.rectTransform.anchoredPosition.x > MiniMap_Default_posX 
+            if (MiniMap.rectTransform.anchoredPosition.x > MiniMap_Default_posX
                 && MiniMap.rectTransform.anchoredPosition.y < MiniMap_Default_posY)
             {
-                MiniMap.rectTransform.anchoredPosition = 
-                    new Vector3(MiniMap.rectTransform.anchoredPosition.x - MapChangeRate, 
+                MiniMap.rectTransform.anchoredPosition =
+                    new Vector3(MiniMap.rectTransform.anchoredPosition.x - MapChangeRate,
                     MiniMap.rectTransform.anchoredPosition.y + MapChangeRate, 0);
             }
 
             if (MiniMap.rectTransform.anchoredPosition.x > MiniMap_Default_posX)
             {
                 MiniMap.rectTransform.anchoredPosition =
-                    new Vector3(MiniMap.rectTransform.anchoredPosition.x - MapChangeRate, 
+                    new Vector3(MiniMap.rectTransform.anchoredPosition.x - MapChangeRate,
                     MiniMap.rectTransform.anchoredPosition.y, 0);
             }
 
             if (MiniMap.rectTransform.anchoredPosition.y < MiniMap_Default_posY)
             {
                 MiniMap.rectTransform.anchoredPosition =
-                    new Vector3(MiniMap.rectTransform.anchoredPosition.x, 
+                    new Vector3(MiniMap.rectTransform.anchoredPosition.x,
                     MiniMap.rectTransform.anchoredPosition.y + MapChangeRate, 0);
             }
 
@@ -714,4 +482,456 @@ public class RoundManager : MonoBehaviour
         MiniMap.rectTransform.anchoredPosition = new Vector3(MiniMap_Default_posX, MiniMap_Default_posY, 0);
         MiniMap.rectTransform.sizeDelta = new Vector2(MiniMap_Default_Width, MiniMap_Default_Height);
     }
+
+    public void AddNotificationToFeed(string note)
+    {
+        foreach (Text x in KillFeedBoxes)
+        {
+            if (KillFeedBoxes.IndexOf(x) <= KillFeedBoxes.Count - 2)
+            {
+                x.text = KillFeedBoxes[KillFeedBoxes.IndexOf(x) + 1].text;
+            }
+        }
+
+        KillFeedBoxes[KillFeedBoxes.Count - 1].text = note;
+    }
+    #endregion
+
+    #region Phase 0 - StartBattle
+
+    void Start()
+    {
+        StartBattle();
+        ClearKillFeed();
+        ClearInitiativeFeed();
+    }
+
+    public void ClearKillFeed()
+    {
+        foreach (Text x in KillFeedBoxes)
+        {
+            x.text = "";
+        }
+    }
+    public void ClearInitiativeFeed()
+    {
+        foreach (Text x in InitiatveOrderFeedBoxes)
+        {
+            x.text = "";
+        }
+    }
+
+    void StartBattle()
+    {
+        AssignAllTeamColors();
+        SetMiniMapDefaults();
+        StartRound();
+    }
+
+    public void AssignAllTeamColors()
+    {
+        Unit_Master[] UnitsToColor = FindObjectsOfType<Unit_Master>();
+
+        foreach (Unit_Master x in UnitsToColor)
+        {
+            AssignTeamColors(x);
+        }
+    }
+
+    public void SetMiniMapDefaults()
+    {
+        MiniMap_Default_posX = MiniMap.rectTransform.anchoredPosition.x;
+        MiniMap_Default_posY = MiniMap.rectTransform.anchoredPosition.y;
+        MiniMap_Default_Width = MiniMap.rectTransform.sizeDelta.x;
+        MiniMap_Default_Height = MiniMap.rectTransform.sizeDelta.y;
+        miniMapIsDefault = true;
+    }
+    #endregion
+
+    #region Phase 1 - StartRound
+    //Order all units in the scene by initiative, remove dead units, select the first unit
+    void StartRound()
+    {
+        CurrentTime = 0;
+        OrderUnitsByInitiative();
+        DestroyDeadUnits();
+        SelectTheFirstUnit();
+        ResetUnitMovement();
+        GiveAllUnitsNerve();
+        ActivateMapCam();
+    }
+
+    //Find all units in the scene, order them by initiative ignoring the dead units
+    void OrderUnitsByInitiative()
+    {
+        AllUnits = null;
+
+        Unit_Master[] tempUnits;
+
+        tempUnits = null;
+
+        tempUnits = FindObjectsOfType<Unit_Master>();
+
+        foreach (Unit_Master x in tempUnits)
+        {
+            x.RollInitiative();
+        }
+
+        AllUnits = tempUnits.OrderByDescending(x => x.characterSheet.UnitStat_Initiative).ToArray();
+
+        initiativeOrder.Clear();
+
+        foreach (Unit_Master x in AllUnits)
+        {
+            if (x.isDead != true && x.cantBeControlled == false)
+            {
+                initiativeOrder.Add(x);
+            }
+        }
+    }
+
+    //Remove all dead units from the scene
+    void DestroyDeadUnits()
+    {
+        foreach (Unit_Master x in AllUnits)
+        {
+            if (x.isDead == true)
+            {
+                Destroy(x.gameObject);
+            }
+        }
+    }
+
+    //Select the first unit to take control of
+    void SelectTheFirstUnit()
+    {
+        SelectedUnit = null;
+
+        SelectedUnitIndex = 0;
+
+        SelectedUnit = initiativeOrder[SelectedUnitIndex];
+
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x != SelectedUnit)
+            {
+                x.ToggleControl(false);
+            }
+        }
+    }
+
+    //Restore all movement points to all units and reset can move bool
+    void ResetUnitMovement()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.ResetMovement();
+        }
+    }
+
+    public void GiveAllUnitsNerve()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.RecoverNerve();
+        }
+    }
+    #endregion
+
+    #region Phase 2 - MapOverview
+    public void ActivateMapCam()
+    {
+        DeactivateSuppressors();
+
+        isInMapMode = true;
+        Cursor.lockState = CursorLockMode.None;
+        ResetPlayerHUD();
+        PlayerHUD.gameObject.SetActive(false);
+        MapHUD.SetActive(true);
+        MapCamera.targetTexture = null;
+
+        ClearInitiativeFeed();
+
+        StartCoroutine(WaitToSetMapHud());
+    }
+
+    IEnumerator WaitToSetMapHud()
+    {
+        yield return new WaitForFixedUpdate();
+        SetInitiativeFeed();
+        SetMapHudCharacter();
+    }
+
+    public void SetMapHudCharacter()
+    {
+        HUD_Map_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
+        HUD_Map_hpText.text = "Hp : " + SelectedUnit.characterSheet.UnitStat_HitPoints;
+        HUD_Map_heldWeaponText.text = SelectedUnit.equippedWeapon.Item_Name;
+        HUD_Map_accText.text = "Acc: " + (int)SelectedUnit.Calculated_WeaponAccuracy + "%";
+    }
+
+    public void SetInitiativeFeed()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].text = x.characterSheet.UnitStat_Name;
+        }
+    }
+
+    public void DeactivateSuppressors()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.ToggleSuppression(false);
+        }
+    }
+
+    public void DeactivateMapCam()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        isInMapMode = false;
+
+        PlayerHUD.gameObject.SetActive(true);
+
+        MapHUD.SetActive(false);
+        MapCamera.targetTexture = (RenderTexture)MiniMap.texture;
+
+        HUD_Player_ConfirmText.SetActive(false);
+
+        ActivateNewUnit();
+    }
+    #endregion
+
+    #region Phase 3 - Unit Acts
+    //Activates the units who are suppress firing the controlled unit
+    public void ActivateSuppressors()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x.suppressionTarget == SelectedUnit)
+            {
+                x.ToggleSuppression(true);
+            }
+            else
+            {
+                x.ToggleSuppression(false);
+            }
+        }
+    }
+
+    // Adds an action to the list to be called later, sets it's priority, calls EndUnitTurn
+    public void AddAction(TimeScaleAction TSA_ToBeAdded)
+    {
+        SelectedUnit.IsBeingControlled = false;
+
+        int priorityOffset = 0;
+
+        TSA_ToBeAdded.timeScalePosition = TSA_ToBeAdded.timeScaleOffSet + CurrentTime;
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition == TSA_ToBeAdded.timeScalePosition)
+            {
+                priorityOffset++;
+            }
+        }
+
+        TSA_ToBeAdded.timeScalePriority = priorityOffset;
+
+        TimeScaleOrder.Add(TSA_ToBeAdded);
+
+        EndUnitTurn();
+    }
+
+    //Ends the unit's turn and calls FindNextActionsToActivate as a result
+    public void EndUnitTurn()
+    {
+        TurnIsEnding = true;
+        MiniMapTransformReset();
+        SetActionsToActivate();
+        ActivateActionsToActivate();
+    }
+
+    // Finds all the actions that should be called this time unit
+    public void SetActionsToActivate()
+    {
+        QueuedActions.Clear();
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition == CurrentTime)
+            {
+                QueuedActions.Add(x);
+            }
+        }
+
+        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
+    }
+
+    // Activates the actions that should be activated this time unit
+    public void ActivateActionsToActivate()
+    {
+        StartCoroutine(ActivateActionsRoutine());
+    }
+    IEnumerator ActivateActionsRoutine()
+    {
+        foreach (TimeScaleAction x in ActionsToActivate)
+        {
+            if (x.ActionConditional() == true)
+            {
+                x.ActionEffect();
+
+                while (x.ActingUnit.shooting.isFiring)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+            }
+        }
+
+        yield return new WaitForSeconds(1f);
+
+        ActionsToActivate = null;
+
+        IncrememntTime();
+        SelectNewUnitToActivate();
+    }
+
+    // Steps the timescale forward
+    void IncrememntTime()
+    {
+        CurrentTime++;
+    }
+
+    //Selects next unit in the initiative order
+    void SelectNewUnitToActivate()
+    {
+        SelectedUnitIndex++;
+
+        if (SelectedUnitIndex >= initiativeOrder.Count)
+        {
+            EndRound();
+        }
+
+        else
+        {
+            if (SelectedUnit != null)
+            SelectedUnit.ToggleControl(false);
+
+            if (initiativeOrder[SelectedUnitIndex].isDead == false)
+            {
+                SelectedUnit = initiativeOrder[SelectedUnitIndex];
+
+                for (int i = 0; i < initiativeOrder.Count; i++)
+                {
+                    if (initiativeOrder[i] != SelectedUnit)
+                    {
+                        if (initiativeOrder[i] != null)
+                        initiativeOrder[i].ToggleControl(false);
+                    }
+                }
+
+                ActivateMapCam();
+            }
+
+            else
+            {
+                SelectNewUnitToActivate();
+            }
+        }
+    }
+
+    void ActivateNewUnit()
+    {
+        TurnIsEnding = false;
+        SelectedUnit.ToggleControl(true);
+        ActivateSuppressors();
+    }
+    #endregion
+
+    #region Phase 4 - End of Round
+    //Any clean up, then call RoundProcess
+    void EndRound()
+    {
+        ActivateRemainingActions();
+    }
+
+    //activate all remaining actions
+    void ActivateRemainingActions()
+    {
+        StartCoroutine(ActivateRemainingActionsRoutine());
+    }
+    IEnumerator ActivateRemainingActionsRoutine()
+    {
+        QueuedActions.Clear();
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition == CurrentTime)
+            {
+                QueuedActions.Add(x);
+            }
+        }
+
+        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
+
+        foreach (TimeScaleAction x in ActionsToActivate)
+        {
+            if (x.ActingUnit.isDead == false)
+            {
+                x.ActionEffect();
+
+                while (x.ActingUnit.shooting.isFiring)
+                {
+                    yield return new WaitForFixedUpdate();
+                }
+
+                yield return new WaitForFixedUpdate();
+            }
+        }
+
+        ActionsToActivate = null;
+
+        int numberOfRemainingActions = 0;
+
+        foreach (TimeScaleAction x in TimeScaleOrder)
+        {
+            if (x.timeScalePosition > CurrentTime)
+            {
+                numberOfRemainingActions++;
+            }
+        }
+
+        if (numberOfRemainingActions > 0)
+        {
+            IncrememntTime();
+            ActivateRemainingActions();
+        }
+
+        if (numberOfRemainingActions == 0)
+        {
+            ClearOldActions();
+            ResetAllUnitStateMachines();
+
+            AddNotificationToFeed("End of Round");
+
+            StartRound();
+        }
+    }
+
+    //Removes used up actions from the timescale
+    public void ClearOldActions()
+    {
+        TimeScaleOrder.RemoveAll(TimeScaleAction => TimeScaleAction.timeScalePosition <= CurrentTime);
+    }
+
+    //Sets all units back to waiting before the next round
+    public void ResetAllUnitStateMachines()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x != null)
+            x.ResetStateMachine();
+        }
+    }
+    #endregion
 }

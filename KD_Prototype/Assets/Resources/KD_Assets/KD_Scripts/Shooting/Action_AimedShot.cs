@@ -12,6 +12,6 @@ public class Action_AimedShot : TimeScaleAction
 
     public override void ActionEffect()
     {
-        ActingUnit.shooting.TestShooting(1f);
+        ActingUnit.shooting.TestShooting(ActingUnit.AimedShotAccMod);
     }
 }

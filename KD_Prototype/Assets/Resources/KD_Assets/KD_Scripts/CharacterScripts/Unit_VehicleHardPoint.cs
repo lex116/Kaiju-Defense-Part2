@@ -6,8 +6,9 @@ using UnityEngine;
 public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 {
     public string HardPointName;
-    internal int StartingArmor = 20;
-    public int Armor;
+    internal int StartingArmor = 50;
+    internal int Armor;
+    public Unit_VehicleMaster OwnerVehicle;
 
     public bool isDestroyed;
     RoundManager roundManager;
@@ -15,6 +16,17 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     void Awake()
     {
         Armor = StartingArmor;
+        OwnerVehicle = GetComponentInParent<Unit_VehicleMaster>();
+    }
+
+    void Start()
+    {
+        SetUp();
+    }
+
+    public virtual void SetUp()
+    {
+        HardPointName = "(" + OwnerVehicle.characterSheet.UnitStat_Name + ") " + HardPointName;
     }
 
     public virtual void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
@@ -37,10 +49,8 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     void DestroyHardPoint(string Attacker)
     {
         isDestroyed = true;
-        this.gameObject.AddComponent<Rigidbody>();
-        this.gameObject.transform.parent = null;
 
         roundManager = FindObjectOfType<RoundManager>();
-        roundManager.AddNotificationToFeed(Attacker + " destroyed " + this.name);
+        roundManager.AddNotificationToFeed(Attacker + " destroyed " + HardPointName);
     }
 }

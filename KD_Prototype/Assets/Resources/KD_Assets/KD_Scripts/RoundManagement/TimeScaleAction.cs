@@ -19,6 +19,14 @@ public class TimeScaleAction
         // Does something eventually
     }
 
+    public virtual bool ActionConditional()
+    {
+        if (ActingUnit.isDead == false)
+            return true;
+        else
+            return false;
+    }
+
     public virtual void SetUp(Unit_Master actingUnit, Unit_Master targetUnit)
     {
         ActingUnit = actingUnit;

@@ -7,7 +7,21 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    internal float QuickShotAccMod = 0.8f;
+    internal float AimedShotAccMod = 1f;
+    internal float SuppressShotAccMod = 0.70f;
+    
+    internal float[] ShotAccMods = new float[3];
+
+    internal float PanicAccMod = 0.75f;
+
+    [SerializeField]
+    internal float CurrentShotAcc;
+
     public GameObject MapIconCanvas;
+    public bool cantBeControlled;
+    public int initiativeRoll;
+    bool initiativeRolled;
 
     #region Unit Components
     public enum Characters
@@ -51,7 +65,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     internal float movementPointsRemaining;
     public float Calculated_WeaponAccuracy;
     public bool hasNoMovementRemaining;
-    internal bool isPanicked;
     public bool isDead;
     #endregion
 
@@ -70,9 +83,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Unit_Master TargetUnit;
     public GameObject AimingNode;
     public Unit_Master suppressionTarget;
-    public string LookedAtObjectString;
-    Unit_Master LookedAtUnit_Master;
-    Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
+
+    internal Unit_Master LookedAtUnit_Master;
+    internal Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
     float DefaultFOV = 60;
     float TargetFOV;
     public bool isAbleToSuppress;
@@ -89,10 +102,15 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #region Utility + Setup Methods
     public virtual void Awake()
     {
+        ShotAccMods[0] = QuickShotAccMod;
+        ShotAccMods[1] = AimedShotAccMod;
+        ShotAccMods[2] = SuppressShotAccMod;
         SetCharacter();
+        SetItems();
         SetUpComponents();
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
+        CalculateWeaponStats();
     }
 
     public void SetCharacter()
@@ -114,27 +132,32 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void Start()
     {
+        //this is for when unis get spawned in and need te references for some reason
         SetItems();
     }
 
     public void SetItems()
     {
-        equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
-        equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
-        equippedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.selectedArmor.ToString());
+        if (equippedWeapon == null)
+            equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
+
+        if (equippedEquipment == null)
+            equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
+
+        if (equippedArmor == null)
+            equippedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.selectedArmor.ToString());
 
         equippedEquipment.DeployableSpawnLocation = DeployableSpawnLocation;
         equippedEquipment.DeployableThrowForce = DeployableThrowForce;
         equippedEquipment.DeployableOwner = this;
-
-        CalculateWeaponStats();
     }
 
     public virtual void ToggleControl(bool toggle)
     {
+        CalculateWeaponStats();
         playerCamera.gameObject.SetActive(toggle);
         IsBeingControlled = toggle;
-        SetItems();
+
         SetAction(0);
         CalculateCarryWeight();
     }
@@ -145,7 +168,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         {
             PlayerInput();
             SpendMovement();
-            LookAtObject();
+            LookAtTarget();
             ChangeCameraFOV();
         }
 
@@ -195,19 +218,17 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
 
         if (Input.GetKeyDown(KeyCode.Keypad4))
-        {
             equippedEquipment.UseEffect();
-        }
 
         if (Input.GetKeyDown(KeyCode.M))
-        {
             roundManager.ToggleMiniMap();
-        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+            Interaction();
     }
 
-    public void LookAtObject()
+    public void LookAtTarget()
     {
-        LookedAtObjectString = null;
         LookedAtUnit_Master = null;
         LookedAtUnit_VehicleHardPoint = null;
 
@@ -219,29 +240,20 @@ public class Unit_Master : MonoBehaviour, IDamagable
             {
                 LookedAtUnit_Master = hit.collider.gameObject.GetComponent<Unit_Master>();
                 LookedAtUnit_VehicleHardPoint = hit.collider.gameObject.GetComponent<Unit_VehicleHardPoint>();
-
-                if (LookedAtUnit_Master != null)
-                    LookedAtObjectString = LookedAtUnit_Master.characterSheet.UnitStat_Name;
-
-                if (LookedAtUnit_VehicleHardPoint != null)
-                    LookedAtObjectString = LookedAtUnit_VehicleHardPoint.HardPointName;
             }
         }
     }
 
     public virtual void CalculateWeaponStats()
     {
-        Calculated_WeaponAccuracy = (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy) / 2;
-
-        if (isPanicked)
-        {
-            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.75f;
-        }
+        //
     }
 
     public void SetAction(int selection)
     {
         SelectedAction = (Actions)selection;
+
+        CurrentShotAcc = ShotAccMods[selection];
 
         if (SelectedAction == Actions.QuickShot)
             TargetFOV = DefaultFOV;
@@ -280,16 +292,18 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region Combat Methods  
-    public virtual void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
+    public void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
+        int DamageToTake = 0;
+
         if (isDead == false)
         {
-            Damage = Damage - (equippedArmor.DamageResistance[(int)DamageType]);
+            DamageToTake = Damage - (equippedArmor.DamageResistance[(int)DamageType]);
 
             if (Damage > 0)
             {
-                ChangeTeamNerve(-Damage);
-                characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - Damage;
+                ChangeTeamNerve(-DamageToTake);
+                characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - DamageToTake;
             }
 
             if (characterSheet.UnitStat_HitPoints <= 0)
@@ -307,6 +321,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
         if (LookedAtUnit_Master != null)
             suppressionTarget = LookedAtUnit_Master;
+
+        if (LookedAtUnit_VehicleHardPoint != null)
+            suppressionTarget = LookedAtUnit_VehicleHardPoint.GetComponentInParent<Unit_Master>();
     }
 
     public void TrackSuppressTarget()
@@ -332,7 +349,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void SuppressionUpdate()
     {
-        if (isAbleToSuppress == true && isDead == false)
+        if (isAbleToSuppress == true && isDead == false && suppressionTarget!= null)
         {
             TrackSuppressTarget();
 
@@ -344,9 +361,16 @@ public class Unit_Master : MonoBehaviour, IDamagable
                 {
                     RaycastHit hit;
 
-                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, equippedWeapon.Range, 13))
+                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, equippedWeapon.Range))
                     {
                         if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
+                        {
+                            losCheck = true;
+                        }
+
+                        Unit_VehicleHardPoint tempHardPoint = hit.collider.GetComponent<Unit_VehicleHardPoint>();
+
+                        if (tempHardPoint != null)
                         {
                             losCheck = true;
                         }
@@ -356,7 +380,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
             if (shooting.isFiring == false && losCheck == true)
             {
-                shooting.TestShooting(.9f);
+                shooting.TestShooting(SuppressShotAccMod);
             }
         }
     }
@@ -384,46 +408,20 @@ public class Unit_Master : MonoBehaviour, IDamagable
         KD_CC.cantLook = false;
     }
 
+    public void ResetStateMachine()
+    {
+        ShootingStateMachine.SetBool("isSPR", false);
+        ShootingStateMachine.SetBool("Reset", true);
+    }
+
     public virtual void Die(string Attacker)
     {
 
     }
 
-    public void ChangeNerve(int change)
+    public virtual void ChangeNerve(int change)
     {
-        if (change > 0)
-        {
-            characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
-        }
-
-        if (change < 0 && RollStatCheck(characterSheet.UnitStat_Willpower, 1) == false)
-        {
-            characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
-        }
-
-        #region Results from change
-        if (characterSheet.UnitStat_Nerve < 25 && !isPanicked)
-        {
-            isPanicked = true;
-            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Panicked!");
-        }
-
-        if (characterSheet.UnitStat_Nerve > 25 && isPanicked)
-        {
-            isPanicked = false;
-            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Recovered!");
-        }
-
-        if (characterSheet.UnitStat_Nerve > 100)
-        {
-            characterSheet.UnitStat_Nerve = 100;
-        }
-
-        if (characterSheet.UnitStat_Nerve < 0)
-        {
-            characterSheet.UnitStat_Nerve = 0;
-        }
-        #endregion
+        //
     }
 
     public void ChangeTeamNerve(int change)
@@ -439,11 +437,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    public bool RollStatCheck(int Stat, int StatMod)
+    public bool RollStatCheck(int Stat, float StatMod)
     {
         int Roll = UnityEngine.Random.Range(0, 99);
 
-        if (Roll > (Stat * StatMod))
+        if (Roll < (Stat * StatMod))
         {
             return true;
         }
@@ -454,5 +452,31 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
+    public void RecoverNerve()
+    {
+        ChangeNerve(characterSheet.UnitStat_Willpower / 10);
+        //characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + (characterSheet.UnitStat_Willpower / 10);
+    }
+
+    public void RollInitiative()
+    {
+        if (!initiativeRolled)
+        {
+            initiativeRoll = UnityEngine.Random.Range(0, 99);
+            initiativeRolled = true;
+        }
+
+        characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Reaction + initiativeRoll;
+    }
+
+    public void ToggleSuppression(bool toggle)
+    {
+        isAbleToSuppress = toggle;
+    }
     #endregion
+
+    public virtual void Interaction()
+    {
+        //
+    }
 } 

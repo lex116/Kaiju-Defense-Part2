@@ -7,6 +7,11 @@ public class Action_ActivateFragGrenade : TimeScaleAction
     //temp
     public FragGrenade_Behavior thisGrenade;
 
+    public override bool ActionConditional()
+    {
+        return true;
+    }
+
     public Action_ActivateFragGrenade()
     {
         actionName = "Frag Grenade";

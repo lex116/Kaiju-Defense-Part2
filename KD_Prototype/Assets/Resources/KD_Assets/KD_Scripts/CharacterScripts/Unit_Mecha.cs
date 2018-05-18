@@ -11,22 +11,25 @@ public class Unit_Mecha : Unit_VehicleMaster
 
     public override void CalculateWeaponStats()
     {
-        Calculated_WeaponAccuracy = 
-            (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy + CurrentPilot.characterSheet.UnitStat_Accuracy) / 3;
-
-        if (CurrentPilot.isPanicked)
+        if (CurrentPilot_Character != null)
         {
-            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.75f;
-        }
+            Calculated_WeaponAccuracy =
+            (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy + CurrentPilot_Character.UnitStat_Accuracy) / 3;
 
-        if (RightArm.isDestroyed)
-        {
-            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.25f;
-        }
+            if (CurrentPilot_Character.isPanicked)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * PanicAccMod;
+            }
 
-        if (Sensor.isDestroyed)
-        {
-            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.1f;
+            if (RightArm.isDestroyed)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.25f;
+            }
+
+            if (Sensor.isDestroyed)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.1f;
+            }
         }
     }
 
@@ -50,17 +53,8 @@ public class Unit_Mecha : Unit_VehicleMaster
     {
         ChangeTeamNerve(-25);
 
-        //Debug.Log(this.gameObject.name + "has died");
-
         isDead = true;
 
-        //if (roundManager.SelectedUnit == this)
-        //{
-        //    roundManager.EndUnitTurn();
-        //}
-
-        //this.transform.localScale = new Vector3(1f, 0.25f, 1f);
-        //temp
         Destroy(KD_CC);
 
         foreach (Transform x in transform)
@@ -69,21 +63,5 @@ public class Unit_Mecha : Unit_VehicleMaster
         }
 
         roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
-    }
-
-    public override void ToggleControl(bool toggle)
-    {
-        playerCamera.gameObject.SetActive(toggle);
-        IsBeingControlled = toggle;
-        SetItems();
-        SetAction(0);
-        CalculateCarryWeight();
-
-        if (toggle == false && CurrentPilot != null)
-        {
-            CurrentPilot.ToggleControl(false);
-            //ToggleControl(false);
-            Debug.Log("turn off vehicle");
-        }
     }
 }

@@ -7,8 +7,8 @@ public class Weapon_Human_Shotgun : Weapon_Master
     public Weapon_Human_Shotgun()
     {
         Item_Name = "Shotgun";
-        Damage = 1;
-        damageType = DamageTypes.Puncture;
+        Damage = 3;
+        damageType = DamageTypes.Shred;
         Accuracy = 60;
         ShotCount = 10;
         BurstCount = 3; 

@@ -6,11 +6,9 @@ using UnityEngine.UI;
 
 public class Unit_Human : Unit_Master
 {
-    [Header("Human Fields")]
+    public int InteractionRange = 2;
 
-    public int initiativeRoll;
-    bool initiativeRolled;
-    public Unit_VehicleMaster PilottedVehicle;
+    [Header("Human Fields")]
 
     #region Unit Stats
     public int UnitStat_Level;
@@ -26,61 +24,87 @@ public class Unit_Human : Unit_Master
     public PilotClass SelectedPilotClass;
 
     //This is where knowledges will go at a later time >>>>
-
-    public override void ToggleControl(bool toggle)
-    {
-        playerCamera.gameObject.SetActive(toggle);
-        IsBeingControlled = toggle;
-        SetItems();
-        SetAction(0);
-        CalculateCarryWeight();
-
-        if (toggle == true && PilottedVehicle != null)
-        {
-            roundManager.SelectedUnit = PilottedVehicle;
-            PilottedVehicle.ToggleControl(true);
-            ToggleControl(false);
-            Debug.Log("Turn on vehiclee");
-        }
-    }
-
     #endregion
 
     #region Combat Methods
     public override void Die(string Attacker)
     {
-        //Debug.Log(this.gameObject.name + "has died");
-
         ChangeTeamNerve(-15);
 
         isDead = true;
-
-        //if (roundManager.SelectedUnit == this)
-        //{
-        //    roundManager.EndUnitTurn();
-        //}
 
         this.transform.localScale = new Vector3(1f, 0.25f, 1f);
 
         roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
     }
-
-    public void RollInitiative()
-    {
-        int tempCharacterReaction = characterSheet.UnitStat_Reaction;
-
-        if (PilottedVehicle != null)
-        {
-            tempCharacterReaction = (tempCharacterReaction + PilottedVehicle.characterSheet.UnitStat_Reaction) * 2;
-        }
-
-        if (!initiativeRolled)
-        {
-            initiativeRoll = UnityEngine.Random.Range(0, 99);
-            initiativeRolled = true;
-        }
-
-        characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Initiative + initiativeRoll;
-    }
     #endregion
+
+    public override void Interaction()
+    {
+        IInteractable objectToActivate = null;
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, InteractionRange))
+        {
+            objectToActivate = hit.collider.GetComponent<IInteractable>();
+
+            if (objectToActivate == null)
+            {
+                objectToActivate = hit.collider.GetComponentInParent<IInteractable>();
+            }
+
+            if (objectToActivate != null)
+            {
+                objectToActivate.Activate(this);
+            }
+        }
+    }
+
+    public override void CalculateWeaponStats()
+    {
+        Calculated_WeaponAccuracy = (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy) / 2;
+
+        if (characterSheet.isPanicked)
+        {
+            Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * PanicAccMod;
+        }
+    }
+
+    public override void ChangeNerve(int change)
+    {
+        if (change > 0)
+        {
+            characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
+        }
+
+        if (change < 0 && RollStatCheck(characterSheet.UnitStat_Willpower, 1f) == false)
+        {
+            characterSheet.UnitStat_Nerve = characterSheet.UnitStat_Nerve + change;
+        }
+
+        #region Results from change
+        if (characterSheet.UnitStat_Nerve < 25 && !characterSheet.isPanicked)
+        {
+            characterSheet.isPanicked = true;
+            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Panicked!");
+        }
+
+        if (characterSheet.UnitStat_Nerve > 25 && characterSheet.isPanicked)
+        {
+            characterSheet.isPanicked = false;
+            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Recovered!");
+        }
+
+        if (characterSheet.UnitStat_Nerve > characterSheet.UnitStat_StartingNerve)
+        {
+            characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
+        }
+
+        if (characterSheet.UnitStat_Nerve < 0)
+        {
+            characterSheet.UnitStat_Nerve = 0;
+        }
+        #endregion
+    }
 }

@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class Equipment_Human_FragGrenadePack : Equipment_Master
 {
+    public Equipment_Human_FragGrenadePack()
+    {
+        Item_Name = "Frag Grenades";
+    }
+
     public override void SetUp()
     {
         Ammo = 2;
@@ -24,7 +29,7 @@ public class Equipment_Human_FragGrenadePack : Equipment_Master
 
             tempGrenadeRB.AddForce(DeployableSpawnLocation.transform.forward * DeployableThrowForce);
 
-            Ammo--;
+            Ammo = Ammo - 1;
         }
     }
 }

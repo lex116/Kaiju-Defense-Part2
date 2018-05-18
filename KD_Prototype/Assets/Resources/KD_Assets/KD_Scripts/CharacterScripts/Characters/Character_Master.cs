@@ -10,7 +10,8 @@ public class Character_Master : ScriptableObject
     {
         SER,
         SCRAPS,
-        GSR
+        GSR,
+        Neutral
     }
     internal FactionTag UnitStat_FactionTag;
 
@@ -27,6 +28,7 @@ public class Character_Master : ScriptableObject
     //internal int UnitStat_VisualRange;
     internal int UnitStat_StartingNerve;
     internal int UnitStat_Nerve;
+    internal bool isPanicked;
     //internal float startingMovementPoints;
 
     internal int UnitStat_Initiative;
