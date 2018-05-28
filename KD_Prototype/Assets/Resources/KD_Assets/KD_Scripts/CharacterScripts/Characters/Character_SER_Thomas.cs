@@ -14,11 +14,11 @@ public class Character_SER_Thomas : Character_Master
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 88;
         UnitStat_Accuracy = 86;
-        UnitStat_Willpower = 59;
+        UnitStat_Willpower = 74;
         UnitStat_Fitness = 60;
         //UnitStat_Aptitude; ???
         //UnitStat_VisualRange;
-        UnitStat_StartingNerve = 31;
+        UnitStat_StartingNerve = 66;
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Human_AntiArmorRifle;

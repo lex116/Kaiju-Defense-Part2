@@ -7,21 +7,24 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
-    internal float QuickShotAccMod = 0.8f;
+    public GameObject NonRotatingCanvas;
+    public Text UnitIconName;
+    internal Quaternion NonRotatingCanvasDefault = new Quaternion(0, 0, 0, 0);
+
+    internal float QuickShotAccMod = 0.75f;
     internal float AimedShotAccMod = 1f;
-    internal float SuppressShotAccMod = 0.70f;
+    internal float SuppressShotAccMod = 0.60f;
     
     internal float[] ShotAccMods = new float[3];
 
     internal float PanicAccMod = 0.75f;
 
-    [SerializeField]
     internal float CurrentShotAcc;
 
-    public GameObject MapIconCanvas;
-    public bool cantBeControlled;
-    public int initiativeRoll;
-    bool initiativeRolled;
+    internal int FieldOfViewChangeRate = 200;
+
+    internal bool cantBeControlled;
+
 
     #region Unit Components
     public enum Characters
@@ -37,6 +40,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Character_SCRAPS_Mason,
         Character_SCRAPS_Noah,
         Character_SCRAPS_Mecha_Flyboy,
+        Character_SCRAPS_Vehicle_Cobra,
         Character_GSR_Fedor,
         Character_GSR_Khabib,
         Character_GSR_Rustam
@@ -44,7 +48,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Characters selectedCharacter;
     public Character_Master characterSheet;
     [Header("Components")]
-    public KD_CharacterController KD_CC;
+    internal KD_CharacterController KD_CC;
     public Shooting shooting;
     public Animator ShootingStateMachine;
     public Camera playerCamera;
@@ -53,9 +57,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public MeshRenderer[] UnitSkins;
     public Image MapIconHighlight;
     public Image UnitIcon;
-    Quaternion UnitIconOrientation = new Quaternion(0, -90, -90, 0);
+    Quaternion UnitIconOrientation = new Quaternion(90, 0, 0, 0);
     public Transform DeployableSpawnLocation;
-    int DeployableThrowForce = 1500;
+    internal int DeployableThrowForce = 1500;
     #endregion
     
     #region Unit Stats
@@ -63,9 +67,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
     internal float startingMovementPoints;
     [HideInInspector]
     internal float movementPointsRemaining;
-    public float Calculated_WeaponAccuracy;
-    public bool hasNoMovementRemaining;
-    public bool isDead;
+    internal float Calculated_WeaponAccuracy;
+    internal bool hasNoMovementRemaining;
+    internal bool isDead;
     #endregion
 
     #region Unit Input
@@ -77,19 +81,21 @@ public class Unit_Master : MonoBehaviour, IDamagable
     }
     [Header("Input")]
     public Actions SelectedAction;
-    [HideInInspector]
-    public bool IsBeingControlled;
+
+    internal bool IsBeingControlled;
     //This doesnt do anything but it could if we change the way targetting works
-    public Unit_Master TargetUnit;
+    internal Unit_Master TargetUnit;
     public GameObject AimingNode;
-    public Unit_Master suppressionTarget;
+    internal Unit_Master suppressionTarget;
 
     internal Unit_Master LookedAtUnit_Master;
     internal Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
-    float DefaultFOV = 60;
-    float TargetFOV;
-    public bool isAbleToSuppress;
-    public Vector3 movementPosition;
+    internal float DefaultFOV = 60;
+    internal float TargetFOV;
+    internal bool isAbleToSuppress;
+    internal bool isOnSuppressionCooldown;
+    internal int SuppressionCooldownRate = 4;
+    internal Vector3 movementPosition;
     #endregion
 
     #region Unit Inventory    
@@ -105,12 +111,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         ShotAccMods[0] = QuickShotAccMod;
         ShotAccMods[1] = AimedShotAccMod;
         ShotAccMods[2] = SuppressShotAccMod;
+        SetUpComponents();
         SetCharacter();
         SetItems();
-        SetUpComponents();
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
         CalculateWeaponStats();
+        UnitIconName.text = characterSheet.UnitStat_Name;
     }
 
     public void SetCharacter()
@@ -136,7 +143,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         SetItems();
     }
 
-    public void SetItems()
+    public virtual void SetItems()
     {
         if (equippedWeapon == null)
             equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
@@ -162,7 +169,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         CalculateCarryWeight();
     }
 
-    public virtual void Update()
+    public void FixedUpdate()
+    {
+        if (IsBeingControlled && isDead == false)
+            KD_CC.InputUpdate();
+    }
+
+    public void Update()
     {
         if (IsBeingControlled && isDead == false)
         {
@@ -176,9 +189,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     }
 
     public virtual void PlayerInput()
-    {
-        KD_CC.InputUpdate();
-
+    { 
         if (Input.GetKeyDown(KeyCode.Keypad1))
             SetAction(0);
 
@@ -227,7 +238,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
             Interaction();
     }
 
-    public void LookAtTarget()
+    public virtual void LookAtTarget()
     {
         LookedAtUnit_Master = null;
         LookedAtUnit_VehicleHardPoint = null;
@@ -268,15 +279,21 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void ChangeCameraFOV()
     {
         if (playerCamera.fieldOfView < TargetFOV)
-            playerCamera.fieldOfView++;
+            playerCamera.fieldOfView = playerCamera.fieldOfView + 0.01f * FieldOfViewChangeRate;
 
         if (playerCamera.fieldOfView > TargetFOV)
-            playerCamera.fieldOfView--;
+            playerCamera.fieldOfView = playerCamera.fieldOfView - 0.01f * FieldOfViewChangeRate;
     }
 
     public void OrientUnitIcon()
     {
-            UnitIcon.rectTransform.rotation = UnitIconOrientation;
+        //NonRotatingCanvas.transform.LookAt(-1 * Vector3.forward);
+        NonRotatingCanvas.transform.rotation = Quaternion.identity;
+
+        //if (NonRotatingCanvas.transform.rotation != NonRotatingCanvasDefault)
+        //NonRotatingCanvas.transform.rotation = NonRotatingCanvasDefault;
+        //UnitIcon.transform.rotation = new Quaternion(45, 0, 0, 0);
+        //UnitIcon.rectTransform.rotation = UnitIconOrientation;
     }
 
     public virtual void CalculateCarryWeight()
@@ -294,10 +311,10 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #region Combat Methods  
     public void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
-        int DamageToTake = 0;
-
         if (isDead == false)
         {
+            int DamageToTake = 0;
+
             DamageToTake = Damage - (equippedArmor.DamageResistance[(int)DamageType]);
 
             if (Damage > 0)
@@ -326,7 +343,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
             suppressionTarget = LookedAtUnit_VehicleHardPoint.GetComponentInParent<Unit_Master>();
     }
 
-    public void TrackSuppressTarget()
+    public virtual void TrackSuppressTarget()
     {
         //Rotate the body to face the target
         transform.LookAt(suppressionTarget.transform);
@@ -347,7 +364,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         AimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
     }
 
-    public void SuppressionUpdate()
+    public virtual void SuppressionUpdate()
     {
         if (isAbleToSuppress == true && isDead == false && suppressionTarget!= null)
         {
@@ -378,11 +395,19 @@ public class Unit_Master : MonoBehaviour, IDamagable
                 }
             }
 
-            if (shooting.isFiring == false && losCheck == true)
+            if (shooting.isFiring == false && losCheck == true && !isOnSuppressionCooldown)
             {
+                isOnSuppressionCooldown = true;
                 shooting.TestShooting(SuppressShotAccMod);
+                StartCoroutine(SuppressionCooldownRoutine());
             }
         }
+    }
+
+    public IEnumerator SuppressionCooldownRoutine()
+    {
+        yield return new WaitForSeconds(equippedWeapon.FireRate * SuppressionCooldownRate);
+        isOnSuppressionCooldown = false;
     }
 
     public void SpendMovement()
@@ -460,13 +485,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void RollInitiative()
     {
-        if (!initiativeRolled)
+        if (characterSheet.initiativeRolled == false)
         {
-            initiativeRoll = UnityEngine.Random.Range(0, 99);
-            initiativeRolled = true;
+            characterSheet.initiativeRoll = UnityEngine.Random.Range(0, 99);
+            characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Reaction + characterSheet.initiativeRoll;
+            characterSheet.initiativeRolled = true;
         }
-
-        characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Reaction + initiativeRoll;
     }
 
     public void ToggleSuppression(bool toggle)

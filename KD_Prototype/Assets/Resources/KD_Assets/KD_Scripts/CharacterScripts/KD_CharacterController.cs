@@ -9,16 +9,16 @@ public class KD_CharacterController : MonoBehaviour
 
     #region MouseFields
     public GameObject AimingNode;
-    float mouseSensitivity = 1;
-    float xAxisClamp = 0.0f;
+    internal float mouseSensitivity = 1;
+    internal float xAxisClamp = 0.0f;
     public float xRotMaxUp = -90;
     public float xRotMinDown = 90;
     #endregion 
 
     #region MovementFields
     internal CharacterController characterController;
-    float walkSpeed = 4;
-    Rigidbody rigidBody;
+    internal float walkSpeed = 6;
+    internal Rigidbody rigidBody;
     float GroundCheckDistance = 0.75f;
     #endregion
 
@@ -31,7 +31,7 @@ public class KD_CharacterController : MonoBehaviour
     #region Methods
 
     // Use this for every frame jolly good tip tip
-    public void InputUpdate()
+    public virtual void InputUpdate()
     {
         if (!cantMove)
         {

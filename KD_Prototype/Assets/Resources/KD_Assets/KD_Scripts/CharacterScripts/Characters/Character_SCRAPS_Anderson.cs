@@ -12,13 +12,13 @@ public class Character_SCRAPS_Anderson : Character_Master
         UnitStat_StartingHitPoints = 19;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
-        UnitStat_Reaction = 44;
-        UnitStat_Accuracy = 9;
-        UnitStat_Willpower = 41;
+        UnitStat_Reaction = 79;
+        UnitStat_Accuracy = 80;
+        UnitStat_Willpower = 58;
         UnitStat_Fitness = 64;
         //UnitStat_Aptitude; ???
         //UnitStat_VisualRange;
-        UnitStat_StartingNerve = 30;
+        UnitStat_StartingNerve = 68;
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Human_MachineGun;

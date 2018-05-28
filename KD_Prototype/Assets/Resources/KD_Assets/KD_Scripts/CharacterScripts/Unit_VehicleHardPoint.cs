@@ -6,16 +6,16 @@ using UnityEngine;
 public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 {
     public string HardPointName;
-    internal int StartingArmor = 50;
-    internal int Armor;
+    internal int StartingHitPoints;
+    internal int HitPoints;
     public Unit_VehicleMaster OwnerVehicle;
+    internal Armor_Master AttachedArmor;
 
     public bool isDestroyed;
     RoundManager roundManager;
 
     void Awake()
     {
-        Armor = StartingArmor;
         OwnerVehicle = GetComponentInParent<Unit_VehicleMaster>();
     }
 
@@ -33,14 +33,18 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     {
         if (isDestroyed == false)
         {
+            int DamageToTake = 0;
+
+            DamageToTake = Damage - (AttachedArmor.DamageResistance[(int)DamageType]);
+
             if (Damage > 0)
             {
-                Armor = Armor - Damage;
+                HitPoints = HitPoints - DamageToTake;
             }
 
-            if (Armor <= 0)
+            if (HitPoints <= 0)
             {
-                Armor = 0;
+                HitPoints = 0;
                 DestroyHardPoint(Attacker);
             }
         }

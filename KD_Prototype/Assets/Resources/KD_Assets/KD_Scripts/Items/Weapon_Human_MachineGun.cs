@@ -7,14 +7,14 @@ public class Weapon_Human_MachineGun : Weapon_Master
     public Weapon_Human_MachineGun()
     {
         Item_Name = "MachineGun";
-        Damage = 3;
+        Damage = 6;
         damageType = DamageTypes.Puncture;
         Accuracy = 80;
-        ShotCount = 16;
+        ShotCount = 10;
         BurstCount = 1;
         Range = 150;
         FireRate = 0.30f;
         fireMode = FireModes.SingleShot;
-        Weight = 3;
+        Weight = 4;
     }
 }

@@ -7,9 +7,9 @@ public class Weapon_Human_AntiArmorRifle : Weapon_Master
     public Weapon_Human_AntiArmorRifle()
     {
         Item_Name = "Anti-Armor Rifle";
-        Damage = 10;
+        Damage = 20;
         damageType = DamageTypes.Puncture;
-        Accuracy = 50;
+        Accuracy = 95;
         ShotCount = 1;
         BurstCount = 1;
         Range = 1000;

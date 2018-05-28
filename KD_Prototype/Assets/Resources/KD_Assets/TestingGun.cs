@@ -138,7 +138,7 @@ public class TestingGun : MonoBehaviour
 
                         GameObject dmgCube = Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));
 
-                        DamageCube dmgCubeScript = dmgCube.GetComponent<DamageCube>();
+                        DamageEffect dmgCubeScript = dmgCube.GetComponent<DamageEffect>();
 
                         dmgCubeScript.SetOrigin(AimingNode.transform.position);
                 }

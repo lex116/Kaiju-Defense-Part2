@@ -25,6 +25,7 @@ public class Item_Master : ScriptableObject
     public int AmmoType;
     public int Weight;
     public int Range;
+    public int EffectRadius;
     internal GameObject Projectile;
 
     public void Awake()

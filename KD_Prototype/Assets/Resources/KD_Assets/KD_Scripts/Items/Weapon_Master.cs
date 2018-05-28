@@ -11,7 +11,8 @@ public class Weapon_Master : Item_Master
     public enum FireModes
     {
         SingleShot,
-        SpreadShot
+        SpreadShot,
+        AoeShot
     }
     public FireModes fireMode;
 }

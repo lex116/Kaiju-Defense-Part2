@@ -15,7 +15,7 @@ public class Character_SER_Szymon : Character_Master
         UnitStat_Reaction = 97;
         UnitStat_Accuracy = 71;
         UnitStat_Willpower = 60;
-        UnitStat_Fitness = 50;
+        UnitStat_Fitness = 64;
         //UnitStat_Aptitude; ???
         //UnitStat_VisualRange;
         UnitStat_StartingNerve = 63;

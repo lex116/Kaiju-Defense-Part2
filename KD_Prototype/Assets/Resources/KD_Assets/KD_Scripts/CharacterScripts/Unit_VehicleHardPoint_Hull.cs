@@ -7,13 +7,17 @@ public class Unit_VehicleHardPoint_Hull : Unit_VehicleHardPoint
     public override void SetUp()
     {
         HardPointName = "(" + OwnerVehicle.characterSheet.UnitStat_Name + ") " + HardPointName;
-        StartingArmor = OwnerVehicle.characterSheet.UnitStat_StartingHitPoints;
-        Armor = OwnerVehicle.characterSheet.UnitStat_HitPoints;
+        StartingHitPoints = OwnerVehicle.characterSheet.UnitStat_StartingHitPoints;
+        HitPoints = StartingHitPoints;
+        AttachedArmor = OwnerVehicle.equippedArmor;
     }
 
     public override void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
-        OwnerVehicle.TakeDamage(Damage, DamageType, Attacker);
-        Armor = OwnerVehicle.characterSheet.UnitStat_HitPoints;
+        if (Damage > 0)
+        {
+            OwnerVehicle.TakeDamage(Damage, DamageType, Attacker);
+            HitPoints = OwnerVehicle.characterSheet.UnitStat_HitPoints;
+        }
     }
 }

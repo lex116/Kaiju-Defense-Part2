@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System; 
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +7,12 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    public GameObject InitiativeOrderBar;
+
+    public Text ProbableAmountOfDamageToDeal_Text;
+
+    public GameObject ExitApplicationPanel;
+
     #region TeamColors
     [Header("Team Colors")]
     [SerializeField]
@@ -45,7 +51,7 @@ public class RoundManager : MonoBehaviour
 
     #region Hud Fields
     [Header("Hud Fields")]
-    internal float HUD_Player_UpdateRate = 200;
+    internal float HUD_Player_UpdateRate = .02f;
 
     public GameObject PlayerHUD;
     public GameObject PlayerTargetHUD;
@@ -87,7 +93,7 @@ public class RoundManager : MonoBehaviour
 
     bool miniMapIsDefault = true;
 
-    public float MapChangeRate = 10;
+    internal float MapChangeRate = 50;
 
     internal float HUD_Player_DisplayAcc;
     internal float HUD_Player_TargetAcc;
@@ -128,12 +134,15 @@ public class RoundManager : MonoBehaviour
     // Mouse Locking
     void Awake()
     {
+        QualitySettings.vSyncCount = 0;
+        Application.targetFrameRate = 30;
         Cursor.lockState = CursorLockMode.Locked;
+        ExitApplicationPanel.SetActive(false);
     }
 
     void Update()
     {
-        if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false)
+        if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false && ExitApplicationPanel.activeSelf == false)
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
@@ -150,6 +159,11 @@ public class RoundManager : MonoBehaviour
         }
 
         ChangeMiniMapSize();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            ToggleExitApplicationCanvas();
+        }
     }
     #endregion
 
@@ -158,6 +172,12 @@ public class RoundManager : MonoBehaviour
     void PlayerHudUpdate()
     {
         HUD_Player_heldWeaponText.text = SelectedUnit.equippedWeapon.Item_Name;
+
+        if (SelectedUnit is Unit_VehicleMaster)
+        {
+            Unit_VehicleMaster x = (Unit_VehicleMaster)SelectedUnit;
+            HUD_Player_nameText.text = x.characterSheet.UnitStat_Name + "(" + x.CurrentPilot_Character.UnitStat_Name + ")";
+        }
 
         HUD_Player_heldEquipmentText.text = SelectedUnit.equippedEquipment.Item_Name + ": " + SelectedUnit.equippedEquipment.Ammo;
 
@@ -223,30 +243,30 @@ public class RoundManager : MonoBehaviour
             HUD_Player_nerveText.text = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve.ToString();
         }
 
-        HUD_Player_TargetNerve = (currentNerve / startingNerve) * 100;
+        HUD_Player_TargetNerve = (currentNerve / startingNerve);
 
         if (HUD_Player_DisplayNerve > HUD_Player_TargetNerve)
-            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve - 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve - HUD_Player_UpdateRate;
 
         if (HUD_Player_DisplayNerve < HUD_Player_TargetNerve)
-            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve + 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_DisplayNerve = HUD_Player_DisplayNerve + HUD_Player_UpdateRate;
 
-        HUD_Player_nerveBar.fillAmount = HUD_Player_DisplayNerve / 100;
+        HUD_Player_nerveBar.fillAmount = HUD_Player_DisplayNerve;
     }
     void UpdatePlayerHp()
     {
         float currentHp = SelectedUnit.characterSheet.UnitStat_HitPoints;
         float startingHp = SelectedUnit.characterSheet.UnitStat_StartingHitPoints;
 
-        HUD_Player_TargetHp = (currentHp / startingHp) * 100;
+        HUD_Player_TargetHp = (currentHp / startingHp);
 
         if (HUD_Player_DisplayHp > HUD_Player_TargetHp)
-            HUD_Player_DisplayHp = HUD_Player_DisplayHp - 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_DisplayHp = HUD_Player_DisplayHp - HUD_Player_UpdateRate;
 
         if (HUD_Player_DisplayHp < HUD_Player_TargetHp)
-            HUD_Player_DisplayHp = HUD_Player_DisplayHp + 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_DisplayHp = HUD_Player_DisplayHp + HUD_Player_UpdateRate;
 
-        HUD_Player_healthBar.fillAmount = HUD_Player_DisplayHp / 100;
+        HUD_Player_healthBar.fillAmount = HUD_Player_DisplayHp;
 
         HUD_Player_hpText.text = SelectedUnit.characterSheet.UnitStat_HitPoints.ToString();
     }
@@ -267,11 +287,31 @@ public class RoundManager : MonoBehaviour
     #region TargetStatUpdates
     void TargetStatUpdates()
     {
+        UpdatePlayerTargetProbableDamageToDeal();
         UpdatePlayerTargetName();
         UpdatePlayerTargetHp();
         UpdatePlayerTargetNerve();
     }
 
+    void UpdatePlayerTargetProbableDamageToDeal()
+    {
+        int DmgToDealWithResist = 0;
+
+        if (SelectedUnit.LookedAtUnit_Master != null)
+            DmgToDealWithResist = SelectedUnit.equippedWeapon.Damage - SelectedUnit.LookedAtUnit_Master.equippedArmor.DamageResistance[(int)SelectedUnit.equippedWeapon.damageType];
+
+        if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
+            DmgToDealWithResist = SelectedUnit.equippedWeapon.Damage - SelectedUnit.LookedAtUnit_VehicleHardPoint.AttachedArmor.DamageResistance[(int)SelectedUnit.equippedWeapon.damageType];
+
+        int ProbableNumberOfShotsToHit = (int)Math.Ceiling(((SelectedUnit.equippedWeapon.ShotCount * SelectedUnit.equippedWeapon.BurstCount) * ((SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAcc) / 100)));
+
+        int DmgToDealTimesShotCount = DmgToDealWithResist * ProbableNumberOfShotsToHit;
+
+        if (DmgToDealTimesShotCount < 0)
+            DmgToDealTimesShotCount = 0;
+
+        ProbableAmountOfDamageToDeal_Text.text = "Avg Dmg: " + (int)DmgToDealTimesShotCount + " (" + DmgToDealWithResist + " x " + ProbableNumberOfShotsToHit + ")";
+    }
     void UpdatePlayerTargetName()
     {
         if (SelectedUnit.LookedAtUnit_Master != null)
@@ -295,21 +335,21 @@ public class RoundManager : MonoBehaviour
 
         if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
         {
-            currentHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.Armor;
-            startingHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.StartingArmor;
+            currentHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.HitPoints;
+            startingHp = SelectedUnit.LookedAtUnit_VehicleHardPoint.StartingHitPoints;
 
-            HUD_Player_Target_hpText.text = SelectedUnit.LookedAtUnit_VehicleHardPoint.Armor.ToString();
+            HUD_Player_Target_hpText.text = SelectedUnit.LookedAtUnit_VehicleHardPoint.HitPoints.ToString();
         }
 
-        HUD_Player_Target_TargetHp = (currentHp / startingHp) * 100;
+        HUD_Player_Target_TargetHp = (currentHp / startingHp);
 
         if (HUD_Player_Target_DisplayHp > HUD_Player_Target_TargetHp)
-            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp - 0.01f * HUD_Player_UpdateRate;
-
+            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp - HUD_Player_UpdateRate;
+        
         if (HUD_Player_Target_DisplayHp < HUD_Player_Target_TargetHp)
-            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp + 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_Target_DisplayHp = HUD_Player_Target_DisplayHp + HUD_Player_UpdateRate;
 
-        HUD_Player_Target_healthBar.fillAmount = HUD_Player_Target_DisplayHp / 100;
+        HUD_Player_Target_healthBar.fillAmount = HUD_Player_Target_DisplayHp;
     }
     void UpdatePlayerTargetNerve()
     {
@@ -345,15 +385,15 @@ public class RoundManager : MonoBehaviour
 
         }
 
-        HUD_Player_Target_TargetNerve = (currentNerve / startingNerve) * 100;
+        HUD_Player_Target_TargetNerve = (currentNerve / startingNerve);
 
         if (HUD_Player_Target_DisplayNerve > HUD_Player_Target_TargetNerve)
-            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve - 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve - HUD_Player_UpdateRate;
 
         if (HUD_Player_Target_DisplayNerve < HUD_Player_Target_TargetNerve)
-            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve + 0.01f * HUD_Player_UpdateRate;
+            HUD_Player_Target_DisplayNerve = HUD_Player_Target_DisplayNerve + HUD_Player_UpdateRate;
 
-        HUD_Player_Target_nerveBar.fillAmount = HUD_Player_Target_DisplayNerve / 100;
+        HUD_Player_Target_nerveBar.fillAmount = HUD_Player_Target_DisplayNerve;
     }
     #endregion
 
@@ -391,11 +431,13 @@ public class RoundManager : MonoBehaviour
         if (miniMapIsDefault == false)
         {
             miniMapIsDefault = true;
+            InitiativeOrderBar.SetActive(false);
         }
 
         else if (miniMapIsDefault == true)
         {
             miniMapIsDefault = false;
+            InitiativeOrderBar.SetActive(true);
         }
     }
 
@@ -648,6 +690,7 @@ public class RoundManager : MonoBehaviour
         ResetPlayerHUD();
         PlayerHUD.gameObject.SetActive(false);
         MapHUD.SetActive(true);
+        InitiativeOrderBar.SetActive(true);
         MapCamera.targetTexture = null;
 
         ClearInitiativeFeed();
@@ -665,6 +708,15 @@ public class RoundManager : MonoBehaviour
     public void SetMapHudCharacter()
     {
         HUD_Map_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
+
+        if (SelectedUnit is Unit_VehicleMaster)
+        {
+            Unit_VehicleMaster x = (Unit_VehicleMaster)SelectedUnit;
+            HUD_Map_nameText.text = x.characterSheet.UnitStat_Name + "(" + x.CurrentPilot_Character.UnitStat_Name + ")";
+        }
+
+        HUD_Map_nameText.color = MapIconColors[(int)SelectedUnit.characterSheet.UnitStat_FactionTag];
+
         HUD_Map_hpText.text = "Hp : " + SelectedUnit.characterSheet.UnitStat_HitPoints;
         HUD_Map_heldWeaponText.text = SelectedUnit.equippedWeapon.Item_Name;
         HUD_Map_accText.text = "Acc: " + (int)SelectedUnit.Calculated_WeaponAccuracy + "%";
@@ -675,6 +727,15 @@ public class RoundManager : MonoBehaviour
         foreach (Unit_Master x in initiativeOrder)
         {
             InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].text = x.characterSheet.UnitStat_Name;
+
+            if (x is Unit_VehicleMaster)
+            {
+                Unit_VehicleMaster y = (Unit_VehicleMaster)x;
+                if (y.CurrentPilot_Character != null)
+                InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].text = y.characterSheet.UnitStat_Name + "(" + y.CurrentPilot_Character.UnitStat_Name + ")";
+            }
+
+            InitiatveOrderFeedBoxes[initiativeOrder.IndexOf(x)].color = MapIconColors[(int)x.characterSheet.UnitStat_FactionTag];
         }
     }
 
@@ -694,6 +755,7 @@ public class RoundManager : MonoBehaviour
         PlayerHUD.gameObject.SetActive(true);
 
         MapHUD.SetActive(false);
+        InitiativeOrderBar.SetActive(false);
         MapCamera.targetTexture = (RenderTexture)MiniMap.texture;
 
         HUD_Player_ConfirmText.SetActive(false);
@@ -934,4 +996,20 @@ public class RoundManager : MonoBehaviour
         }
     }
     #endregion
+
+    public void ToggleExitApplicationCanvas()
+    {
+        if (ExitApplicationPanel.activeSelf)
+        {
+            ExitApplicationPanel.SetActive(false);
+        }
+
+        else
+            ExitApplicationPanel.SetActive(true);
+    }
+
+    public void ExitApplication()
+    {
+        Application.Quit();
+    }
 }

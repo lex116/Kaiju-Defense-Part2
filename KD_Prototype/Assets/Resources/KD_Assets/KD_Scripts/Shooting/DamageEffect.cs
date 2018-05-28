@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DamageCube : MonoBehaviour
+public class DamageEffect : MonoBehaviour
 {
     public LineRenderer tracer;
 

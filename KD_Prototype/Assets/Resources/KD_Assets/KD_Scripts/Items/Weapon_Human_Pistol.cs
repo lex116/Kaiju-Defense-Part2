@@ -7,10 +7,10 @@ public class Weapon_Human_Pistol : Weapon_Master
     public Weapon_Human_Pistol()
     {
         Item_Name = "Pistol";
-        Damage = 2;
+        Damage = 3;
         damageType = DamageTypes.Puncture;
         Accuracy = 85;
-        ShotCount = 8;
+        ShotCount = 5;
         BurstCount = 1;
         Range = 100;
         FireRate = 0.25f;

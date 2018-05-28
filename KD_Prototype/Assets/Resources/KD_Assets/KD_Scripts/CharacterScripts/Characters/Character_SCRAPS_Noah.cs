@@ -9,13 +9,13 @@ public class Character_SCRAPS_Noah : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Noah";
-        UnitStat_StartingHitPoints = 14;
+        UnitStat_StartingHitPoints = 16;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 82;
-        UnitStat_Accuracy = 50;
+        UnitStat_Accuracy = 76;
         UnitStat_Willpower = 71;
-        UnitStat_Fitness = 30;
+        UnitStat_Fitness = 62;
         //UnitStat_Aptitude; ???
         //UnitStat_VisualRange;
         UnitStat_StartingNerve = 83;
@@ -23,7 +23,7 @@ public class Character_SCRAPS_Noah : Character_Master
 
         selectedWeapon = Weapons.Weapon_Human_MachineGun;
         selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
-        selectedArmor = Armors.Armor_Human_Uniform;
+        selectedArmor = Armors.Armor_Human_BodyArmor;
 
         unitType = UnitTypes.Human;
     }

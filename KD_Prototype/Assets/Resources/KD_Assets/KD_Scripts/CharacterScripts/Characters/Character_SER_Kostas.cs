@@ -14,7 +14,7 @@ public class Character_SER_Kostas : Character_Master
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 72;
         UnitStat_Accuracy = 60;
-        UnitStat_Willpower = 40;
+        UnitStat_Willpower = 72;
         UnitStat_Fitness = 91;
         //UnitStat_Aptitude; ???
         //UnitStat_VisualRange;
@@ -23,7 +23,7 @@ public class Character_SER_Kostas : Character_Master
 
         selectedWeapon = Weapons.Weapon_Human_Pistol;
         selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
-        selectedArmor = Armors.Armor_Human_HeavyArmor;
+        selectedArmor = Armors.Armor_Human_Uniform;
 
         unitType = UnitTypes.Human;
     }

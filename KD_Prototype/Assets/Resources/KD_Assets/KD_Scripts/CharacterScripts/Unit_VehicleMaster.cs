@@ -5,11 +5,18 @@ using UnityEngine;
 
 public class Unit_VehicleMaster : Unit_Master, IInteractable
 {
-    public Character_Master CurrentPilot_Character;
-    public Equipment_Master CurrentPilot_Equipment;
+    [SerializeField]
+    internal Character_Master CurrentPilot_Character;
+    internal Equipment_Master CurrentPilot_Equipment;
+
     public Characters StartingPilot;
     public GameObject HumanPrefab;
     public Transform EjectPos;
+
+    public Unit_VehicleHardPoint Sensor;
+    public Unit_VehicleHardPoint PrimaryWeapon;
+    public Unit_VehicleHardPoint SecondaryEquipment;
+    public Unit_VehicleHardPoint Locomotion;
 
     public override void Awake()
     {
@@ -23,6 +30,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         InstancePilot();
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         CalculateWeaponStats();
+        SetHardPoints();
+        UnitIconName.text = characterSheet.UnitStat_Name;
     }
 
     public void InstancePilot()
@@ -33,6 +42,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         CurrentPilot_Character.UnitStat_HitPoints = CurrentPilot_Character.UnitStat_StartingHitPoints;
         CurrentPilot_Character.UnitStat_Nerve = CurrentPilot_Character.UnitStat_StartingNerve;
+
+        RollStartingPilotInitiative();
     }
 
     public void PilotEmbark(Character_Master IncomingPilot, Equipment_Master IncomingPilotEquipment)
@@ -54,11 +65,25 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
     {
         GameObject tempNewPilot = Instantiate(HumanPrefab, EjectPos.transform.position, EjectPos.transform.rotation);
         Unit_Human tempUnit_HumanScript = tempNewPilot.GetComponent<Unit_Human>();
+
+        tempUnit_HumanScript.characterSheet = null;
+        tempUnit_HumanScript.equippedArmor = null;
+        tempUnit_HumanScript.equippedEquipment = null;
+        tempUnit_HumanScript.equippedWeapon = null;
+
         tempUnit_HumanScript.characterSheet = Instantiate(CurrentPilot_Character) as Character_Master;
+        UnitIconName.text = characterSheet.UnitStat_Name;
+
         tempUnit_HumanScript.characterSheet.UnitStat_HitPoints = CurrentPilot_Character.UnitStat_HitPoints;
         tempUnit_HumanScript.characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
-        tempUnit_HumanScript.equippedEquipment = Instantiate(CurrentPilot_Equipment) as Equipment_Master;
 
+        tempUnit_HumanScript.characterSheet.initiativeRolled = true;
+        tempUnit_HumanScript.characterSheet.UnitStat_Initiative = CurrentPilot_Character.UnitStat_Initiative;
+
+        tempUnit_HumanScript.SetItems();
+        tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
+
+        CalculateWeaponStats();
 
         roundManager.SelectedUnit = tempUnit_HumanScript;
         roundManager.AssignTeamColors(tempUnit_HumanScript);
@@ -69,11 +94,9 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         roundManager.AssignTeamColors(this);
         ToggleControl(false);
 
-        tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
         CurrentPilot_Equipment = null;
 
         tempUnit_HumanScript.playerCamera.gameObject.SetActive(true);
-
     }
 
     public override void Die(string Attacker)
@@ -107,20 +130,6 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
     {
         PilotDisembark();
         roundManager.EndUnitTurn();
-    }
-
-    public override void CalculateWeaponStats()
-    {
-        if (CurrentPilot_Character != null)
-        {
-            Calculated_WeaponAccuracy =
-            (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy + CurrentPilot_Character.UnitStat_Accuracy) / 3;
-
-            if (CurrentPilot_Character.isPanicked)
-            {
-                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * PanicAccMod;
-            }
-        }
     }
 
     public override void ChangeNerve(int change)
@@ -161,5 +170,79 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
             }
         }
         #endregion
+    }
+
+    public void SetHardPoints()
+    {
+        Sensor.StartingHitPoints = characterSheet.Sensor_StartingHitPoints;
+        Sensor.HitPoints = Sensor.StartingHitPoints;
+        if (Sensor.AttachedArmor == null)
+            Sensor.AttachedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.Sensor_Armor.ToString());
+
+        PrimaryWeapon.StartingHitPoints = characterSheet.PrimaryWeapon_StartingHitPoints;
+        PrimaryWeapon.HitPoints = PrimaryWeapon.StartingHitPoints;
+        if (PrimaryWeapon.AttachedArmor == null)
+            PrimaryWeapon.AttachedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.PrimaryWeapon_Armor.ToString());
+
+        SecondaryEquipment.StartingHitPoints = characterSheet.SecondaryEquipment_StartingHitPoints;
+        SecondaryEquipment.HitPoints = SecondaryEquipment.StartingHitPoints;
+        if (SecondaryEquipment.AttachedArmor == null)
+            SecondaryEquipment.AttachedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.SecondaryEquipment_Armor.ToString());
+
+        Locomotion.StartingHitPoints = characterSheet.Locomotion_StartingHitPoints;
+        Locomotion.HitPoints = Locomotion.StartingHitPoints;
+        if (Locomotion.AttachedArmor == null)
+            Locomotion.AttachedArmor = (Armor_Master)ScriptableObject.CreateInstance(characterSheet.Locomotion_Armor.ToString());
+    }
+
+    public override void CalculateWeaponStats()
+    {
+        if (CurrentPilot_Character != null)
+        {
+            Calculated_WeaponAccuracy =
+            (characterSheet.UnitStat_Accuracy + equippedWeapon.Accuracy + CurrentPilot_Character.UnitStat_Accuracy) / 3;
+
+            if (CurrentPilot_Character.isPanicked)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * PanicAccMod;
+            }
+
+            if (PrimaryWeapon.isDestroyed)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.25f;
+            }
+
+            if (Sensor.isDestroyed)
+            {
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.1f;
+            }
+        }
+    }
+
+    public override void CalculateCarryWeight()
+    {
+        float CarryCapacity = characterSheet.UnitStat_Fitness;
+        float CarryWeight = equippedWeapon.Weight + equippedEquipment.Weight + equippedArmor.Weight;
+        float CarryWeightDifference = CarryCapacity - CarryWeight;
+        float Encumberance = CarryWeightDifference / CarryCapacity;
+
+        startingMovementPoints = characterSheet.UnitStat_Fitness;
+        movementPointsRemaining = startingMovementPoints * Encumberance;
+
+        if (Locomotion.isDestroyed == true)
+        {
+            movementPointsRemaining = movementPointsRemaining / 4;
+        }
+    }
+
+    public void RollStartingPilotInitiative()
+    {
+        if (CurrentPilot_Character.initiativeRolled == false)
+        {
+            CurrentPilot_Character.initiativeRoll = UnityEngine.Random.Range(0, 99);
+            CurrentPilot_Character.initiativeRolled = true;
+        }
+
+        CurrentPilot_Character.UnitStat_Initiative = CurrentPilot_Character.UnitStat_Reaction + CurrentPilot_Character.initiativeRoll;
     }
 }

@@ -7,8 +7,8 @@ public class FragGrenade_Behavior : MonoBehaviour
     public Unit_Master Owner;
     public string OwnerName;
     public GameObject ExplosionSphere;
-    public int ExplosionRadius;
-    int ExplosionDamage = 10;
+    public int ExplosionRadius = 25;
+    int ExplosionDamage = 12;
     public Rigidbody grenadeRigidbody;
     public Vector3 grenadeVelocity;
 
@@ -16,7 +16,7 @@ public class FragGrenade_Behavior : MonoBehaviour
     {
         grenadeVelocity = grenadeRigidbody.velocity;
     }
-
+    
     void Start()
     {
         OwnerName = Owner.characterSheet.name;

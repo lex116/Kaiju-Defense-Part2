@@ -6,7 +6,7 @@ using UnityEngine;
 public class Shooting : MonoBehaviour
 {
     ReferenceManager referenceManager;
-    internal Weapon_Master [] Weapons;
+    internal Weapon_Master[] Weapons;
 
     Weapon_Master currentWeapon;
 
@@ -18,6 +18,7 @@ public class Shooting : MonoBehaviour
     public bool isFiring;
 
     public GameObject DamageCube;
+    public GameObject DamageSphere;
 
     #region Thomas Shooting
     //private void DetectAccuracy()
@@ -89,9 +90,36 @@ public class Shooting : MonoBehaviour
     //            }
     //        }
     //    }
-        
+
     //}
     #endregion
+
+    public Vector3 CalculateAccuracy(float accMod)
+    {
+        float Accuracy_WithModifier = unit.Calculated_WeaponAccuracy * accMod;
+        float Accuracy_WithHighRoll = 99f;
+        float Accuracy_ToUse = 0;
+        float AccRoll = 0;
+
+        AccRoll = UnityEngine.Random.Range(0, 99);
+
+        if (Accuracy_WithModifier > AccRoll)
+        {
+            Accuracy_ToUse = Accuracy_WithHighRoll;
+        }
+        else
+        {
+            Accuracy_ToUse = Accuracy_WithModifier;
+        }
+
+        float Accuracy_Translated = ((Accuracy_ToUse) / 1000) + .9f;
+
+        float randomXVector = UnityEngine.Random.Range((1f - Accuracy_Translated), ((1f - Accuracy_Translated) * -1));
+        float randomYVector = UnityEngine.Random.Range((1f - Accuracy_Translated), ((1f - Accuracy_Translated) * -1));
+        float randomZVector = UnityEngine.Random.Range((1f - Accuracy_Translated), ((1f - Accuracy_Translated) * -1));
+
+        return unit.AimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
+    }
 
     public void TestShooting(float accMod)
     {
@@ -112,16 +140,13 @@ public class Shooting : MonoBehaviour
             StartCoroutine(TestShootingRoutine(accMod));
         }
     }
-    
+
     IEnumerator TestShootingRoutine(float AccMod)
     {
         #region Fields
         ShotsFired = 0;
-        IDamagable objectToBeDamaged;
+        IDamagable objectToBeDamaged = null;
         Vector3 DirectionToFire;
-
-        //float Acc_W_Mod = 1 - ((unit.Calculated_WeaponAccuracy * AccMod) / 1000);
-        float Acc_W_Mod = ((unit.Calculated_WeaponAccuracy * AccMod) / 1000) + .9f;
         #endregion 
 
         while (BurstsFired < unit.equippedWeapon.BurstCount)
@@ -130,32 +155,23 @@ public class Shooting : MonoBehaviour
 
             while (ShotsFired < unit.equippedWeapon.ShotCount)
             {
+
                 #region Shooting Code Block
-                float randomXVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
-                float randomYVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
-                float randomZVector = UnityEngine.Random.Range((1f - Acc_W_Mod), ((1f - Acc_W_Mod) * -1));
 
-                DirectionToFire =
-                    unit.AimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
+                DirectionToFire = CalculateAccuracy(AccMod);
 
-                RaycastHit hit;
+                RaycastHit objectToBeHit;
 
-                if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out hit, unit.equippedWeapon.Range))
+                if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range))
                 {
-                    objectToBeDamaged = hit.collider.gameObject.GetComponent<IDamagable>();
-
-                    if (objectToBeDamaged != unit.GetComponent<IDamagable>())
+                    if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
                     {
-                        if (objectToBeDamaged != null)
-                        {
-                            objectToBeDamaged.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
-                        }
+                        SingleTargetEffect(objectToBeDamaged, objectToBeHit);
+                    }
 
-                        GameObject dmgCube = Instantiate(DamageCube, hit.point, new Quaternion(0, 0, 0, 0));
-
-                        DamageCube dmgCubeScript = dmgCube.GetComponent<DamageCube>();
-
-                        dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+                    if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.AoeShot)
+                    {
+                        AoeEffect(objectToBeDamaged, objectToBeHit);
                     }
                 }
 
@@ -175,9 +191,61 @@ public class Shooting : MonoBehaviour
             {
                 yield return new WaitForSeconds(unit.equippedWeapon.FireRate);
             }
-
         }
 
         isFiring = false;
+    }
+
+    public void SingleTargetEffect(IDamagable objectToDamage, RaycastHit objectToHit)
+    {
+        objectToDamage = objectToHit.collider.gameObject.GetComponent<IDamagable>();
+
+        if (objectToDamage != unit.GetComponent<IDamagable>())
+        {
+            if (objectToDamage != null)
+            {
+                objectToDamage.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
+            }
+
+            GameObject dmgCube = Instantiate(DamageCube, objectToHit.point, new Quaternion(0, 0, 0, 0));
+
+            DamageEffect dmgCubeScript = dmgCube.GetComponent<DamageEffect>();
+
+            dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+        }
+    }
+
+    public void AoeEffect(IDamagable objectToDamage, RaycastHit objectToHit)
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(objectToHit.point, unit.equippedWeapon.EffectRadius);
+
+        foreach (Collider x in hitColliders)
+        {
+            RaycastHit hit;
+
+            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, Mathf.Infinity))
+            {
+                if (hit.collider == x)
+                {
+                    IDamagable objectToBeDamaged;
+
+                    objectToBeDamaged = x.gameObject.GetComponent<IDamagable>();
+
+                    if (objectToBeDamaged != null)
+                    {
+                        objectToBeDamaged.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
+                    }
+                }
+            }
+
+            GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
+
+            dmgSphere.transform.localScale =
+                new Vector3(unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius);
+
+            DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
+
+            dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+        }
     }
 }

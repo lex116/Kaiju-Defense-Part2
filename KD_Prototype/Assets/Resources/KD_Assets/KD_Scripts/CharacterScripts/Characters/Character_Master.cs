@@ -28,9 +28,9 @@ public class Character_Master : ScriptableObject
     //internal int UnitStat_VisualRange;
     internal int UnitStat_StartingNerve;
     internal int UnitStat_Nerve;
-    internal bool isPanicked;
-    //internal float startingMovementPoints;
+    internal bool isPanicked; 
 
+    [SerializeField]
     internal int UnitStat_Initiative;
 
     internal enum Weapons
@@ -39,7 +39,8 @@ public class Character_Master : ScriptableObject
         Weapon_Human_Shotgun,
         Weapon_Human_MachineGun,
         Weapon_Vehicle_MachineGun,
-        Weapon_Human_AntiArmorRifle
+        Weapon_Human_AntiArmorRifle,
+        Weapon_Vehicle_Cannon
     }
     internal Weapons selectedWeapon;
 
@@ -55,6 +56,7 @@ public class Character_Master : ScriptableObject
         Armor_Human_BodyArmor,
         Armor_Human_HeavyArmor,
         Armor_Vehicle_LightPlating,
+        Armor_Vehicle_MediumPlating,
         Armor_Vehicle_HeavyPlating
     }
     internal Armors selectedArmor;
@@ -66,4 +68,18 @@ public class Character_Master : ScriptableObject
         Mecha
     }
     internal UnitTypes unitType;
+
+    //Vehicle Fields
+    internal Armors Sensor_Armor;
+    internal int Sensor_StartingHitPoints;
+    internal Armors PrimaryWeapon_Armor;
+    internal int PrimaryWeapon_StartingHitPoints;
+    internal Armors SecondaryEquipment_Armor;
+    internal int SecondaryEquipment_StartingHitPoints;
+    internal Armors Locomotion_Armor;
+    internal int Locomotion_StartingHitPoints;
+
+    //initiative
+    internal int initiativeRoll;
+    internal bool initiativeRolled;
 }
