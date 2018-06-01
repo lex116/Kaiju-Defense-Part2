@@ -7,7 +7,7 @@ public class Weapon_Human_Shotgun : Weapon_Master
     public Weapon_Human_Shotgun()
     {
         Item_Name = "Shotgun";
-        Damage = 2;
+        Damage = 3;
         damageType = DamageTypes.Shred;
         Accuracy = 60;
         ShotCount = 8;
@@ -16,5 +16,11 @@ public class Weapon_Human_Shotgun : Weapon_Master
         FireRate = .75f;
         fireMode = FireModes.SpreadShot;
         Weight = 3;
+    }
+
+    public override void SetUp()
+    {
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Pistol_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Pistol_Reload"));
     }
 }

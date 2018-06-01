@@ -13,8 +13,8 @@ public class Armor_Vehicle_HeavyPlating : Armor_Master
         DamageResistance[(int)DamageTypes.Shred] = 4;
         DamageResistance[(int)DamageTypes.Heat] = 2;
         DamageResistance[(int)DamageTypes.Electrical] = 2;
-        DamageResistance[(int)DamageTypes.Blunt] = 5;
+        DamageResistance[(int)DamageTypes.Blunt] = 4;
         DamageResistance[(int)DamageTypes.Light] = 2;
-        DamageResistance[(int)DamageTypes.Puncture] = 5;
+        DamageResistance[(int)DamageTypes.Puncture] = 4;
     }
 }

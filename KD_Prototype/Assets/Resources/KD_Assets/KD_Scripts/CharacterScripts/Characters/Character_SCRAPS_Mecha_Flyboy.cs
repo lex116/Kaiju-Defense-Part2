@@ -8,7 +8,7 @@ public class Character_SCRAPS_Mecha_Flyboy : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Flyboy";
-        UnitStat_StartingHitPoints = 170;
+        UnitStat_StartingHitPoints = 180;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 75;
@@ -27,12 +27,19 @@ public class Character_SCRAPS_Mecha_Flyboy : Character_Master
         unitType = UnitTypes.Mecha;
 
         Sensor_Armor = Armors.Armor_Vehicle_LightPlating;
-        Sensor_StartingHitPoints = 17;
+        //Sensor_StartingHitPoints = 17;
+        Sensor_StartingHitPoints = (int)(UnitStat_StartingHitPoints * .35f);
+
         PrimaryWeapon_Armor = Armors.Armor_Vehicle_LightPlating;
-        PrimaryWeapon_StartingHitPoints = 42;
+        //PrimaryWeapon_StartingHitPoints = 42;
+        PrimaryWeapon_StartingHitPoints = (int)(UnitStat_StartingHitPoints * .45f);
+
         SecondaryEquipment_Armor = Armors.Armor_Vehicle_LightPlating;
-        SecondaryEquipment_StartingHitPoints = 42;
+        //SecondaryEquipment_StartingHitPoints = 42;
+        SecondaryEquipment_StartingHitPoints = (int)(UnitStat_StartingHitPoints * .45f);
+
         Locomotion_Armor = Armors.Armor_Vehicle_LightPlating;
-        Locomotion_StartingHitPoints = 68;
+        //Locomotion_StartingHitPoints = 68;
+        Locomotion_StartingHitPoints = (int)(UnitStat_StartingHitPoints * .60f);
     }
 }

@@ -7,7 +7,7 @@ public class Weapon_Human_AntiArmorRifle : Weapon_Master
     public Weapon_Human_AntiArmorRifle()
     {
         Item_Name = "Anti-Armor Rifle";
-        Damage = 20;
+        Damage = 25;
         damageType = DamageTypes.Puncture;
         Accuracy = 95;
         ShotCount = 1;
@@ -16,5 +16,11 @@ public class Weapon_Human_AntiArmorRifle : Weapon_Master
         FireRate = 1f;
         fireMode = FireModes.SingleShot;
         Weight = 6;
+    }
+
+    public override void SetUp()
+    {
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
     }
 }

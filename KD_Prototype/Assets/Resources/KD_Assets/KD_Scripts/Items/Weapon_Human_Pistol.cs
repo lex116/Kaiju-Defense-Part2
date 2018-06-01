@@ -17,4 +17,10 @@ public class Weapon_Human_Pistol : Weapon_Master
         fireMode = FireModes.SingleShot;
         Weight = 1;
     }
+
+    public override void SetUp()
+    {
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Pistol_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Pistol_Reload"));
+    }
 }

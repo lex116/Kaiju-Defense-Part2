@@ -9,7 +9,7 @@ public class Character_SER_Samuel : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SER;
         UnitStat_Name = "Samuel";
-        UnitStat_StartingHitPoints = 19;
+        UnitStat_StartingHitPoints = 29;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 62;

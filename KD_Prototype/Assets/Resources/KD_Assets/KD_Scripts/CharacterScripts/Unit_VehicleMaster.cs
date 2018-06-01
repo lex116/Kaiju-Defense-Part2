@@ -63,6 +63,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public void PilotDisembark()
     {
+        roundManager.EndUnitTurn();
+
         GameObject tempNewPilot = Instantiate(HumanPrefab, EjectPos.transform.position, EjectPos.transform.rotation);
         Unit_Human tempUnit_HumanScript = tempNewPilot.GetComponent<Unit_Human>();
 
@@ -85,7 +87,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         CalculateWeaponStats();
 
-        roundManager.SelectedUnit = tempUnit_HumanScript;
+        //roundManager.SelectedUnit = tempUnit_HumanScript;
         roundManager.AssignTeamColors(tempUnit_HumanScript);
         CurrentPilot_Character = null;
   
@@ -96,12 +98,22 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         CurrentPilot_Equipment = null;
 
-        tempUnit_HumanScript.playerCamera.gameObject.SetActive(true);
+        //tempUnit_HumanScript.playerCamera.gameObject.SetActive(false);
+
+        //if (roundManager.SelectedUnit == this)
     }
 
     public override void Die(string Attacker)
     {
         ChangeTeamNerve(-25);
+
+        if (CurrentPilot_Character != null)
+        {
+            if (RollStatCheck(CurrentPilot_Character.UnitStat_Fitness, 1) == true)
+            {
+                PilotDisembark();
+            }
+        }
 
         isDead = true;
 
@@ -209,12 +221,12 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
             if (PrimaryWeapon.isDestroyed)
             {
-                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.25f;
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.75f;
             }
 
             if (Sensor.isDestroyed)
             {
-                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.1f;
+                Calculated_WeaponAccuracy = Calculated_WeaponAccuracy * 0.75f;
             }
         }
     }

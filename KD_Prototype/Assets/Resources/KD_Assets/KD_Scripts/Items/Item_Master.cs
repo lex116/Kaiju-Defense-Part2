@@ -28,6 +28,9 @@ public class Item_Master : ScriptableObject
     public int EffectRadius;
     internal GameObject Projectile;
 
+    internal AudioClip Firing_Clip;
+    internal AudioClip Reload_Clip;
+
     public void Awake()
     {
         SetUp();

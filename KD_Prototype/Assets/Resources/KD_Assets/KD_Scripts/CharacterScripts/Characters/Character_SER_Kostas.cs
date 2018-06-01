@@ -9,7 +9,7 @@ public class Character_SER_Kostas : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SER;
         UnitStat_Name = "Kostas";
-        UnitStat_StartingHitPoints = 17;
+        UnitStat_StartingHitPoints = 23;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 72;

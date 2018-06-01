@@ -7,7 +7,7 @@ public class Weapon_Vehicle_Cannon : Weapon_Master
     public Weapon_Vehicle_Cannon()
     {
         Item_Name = "Cannon";
-        Damage = 15;
+        Damage = 20;
         damageType = DamageTypes.Explosive;
         Accuracy = 85;
         ShotCount = 1;
@@ -15,7 +15,13 @@ public class Weapon_Vehicle_Cannon : Weapon_Master
         Range = 500;
         FireRate = 4f;
         fireMode = FireModes.AoeShot;
-        EffectRadius = 25;
         Weight = 35;
+        EffectRadius = 25;
+    }
+
+    public override void SetUp()
+    {
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
     }
 }

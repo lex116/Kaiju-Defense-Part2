@@ -7,6 +7,9 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    internal int AP = 2;
+    internal int Ammo = 15;
+
     public GameObject NonRotatingCanvas;
     public Text UnitIconName;
     internal Quaternion NonRotatingCanvasDefault = new Quaternion(0, 0, 0, 0);
@@ -25,7 +28,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     internal bool cantBeControlled;
 
-
     #region Unit Components
     public enum Characters
     {
@@ -34,6 +36,8 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Character_SER_Emir,
         Character_SER_Kostas,
         Character_SER_Thomas,
+        Character_SER_Mecha_Xiphos,
+        Character_SER_Mecha_Rogatina,
         Character_SCRAPS_Wanderlei,
         Character_SCRAPS_Anderson,
         Character_SCRAPS_Arlo,
@@ -105,7 +109,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Armor_Master equippedArmor;
     #endregion
 
-    #region Utility + Setup Methods
+    #region Utility + Setup Methods + Player Input
     public virtual void Awake()
     {
         ShotAccMods[0] = QuickShotAccMod;
@@ -148,6 +152,8 @@ public class Unit_Master : MonoBehaviour, IDamagable
         if (equippedWeapon == null)
             equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
 
+
+
         if (equippedEquipment == null)
             equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
 
@@ -159,14 +165,24 @@ public class Unit_Master : MonoBehaviour, IDamagable
         equippedEquipment.DeployableOwner = this;
     }
 
-    public virtual void ToggleControl(bool toggle)
+    public void ToggleControl(bool toggle)
     {
         CalculateWeaponStats();
         playerCamera.gameObject.SetActive(toggle);
+        AudioListener tempCamAudioListener = playerCamera.GetComponent<AudioListener>();
+        tempCamAudioListener.enabled = toggle;
         IsBeingControlled = toggle;
 
         SetAction(0);
         CalculateCarryWeight();
+
+        //temp
+        ResetAP();
+    }
+
+    public void ResetAP()
+    {
+        AP = 2;
     }
 
     public void FixedUpdate()
@@ -189,37 +205,56 @@ public class Unit_Master : MonoBehaviour, IDamagable
     }
 
     public virtual void PlayerInput()
-    { 
-        if (Input.GetKeyDown(KeyCode.Keypad1))
-            SetAction(0);
-
-        if (Input.GetKeyDown(KeyCode.Keypad2))
-            SetAction(1);
-
-        if (Input.GetKeyDown(KeyCode.Keypad3))
-            SetAction(2);
-
-        if (Input.GetKeyDown(KeyCode.Mouse1))
+    {
+        //TESTING
+        if (Input.GetKeyDown(KeyCode.Mouse0) && AP > 0 && Ammo > 0)
         {
-            bool ableToConfirm = true;
-
-            if (SelectedAction == Actions.SuppressShot)
-            {
-                PaintTarget();
-
-                if(suppressionTarget == null)
-                {
-                    ableToConfirm = false;
-                }
-            }
-
-            if (ableToConfirm)
-            {
-                KD_CC.cantLook = true;
-                ShootingStateMachine.SetInteger("ShootingMode", (int)SelectedAction + 1);
-                roundManager.HUD_Player_ConfirmText.SetActive(true);
-            }
+            shooting.TestShooting(QuickShotAccMod);
+            AP--;
+            Ammo--;
         }
+
+        if (Input.GetKeyDown(KeyCode.KeypadEnter) && AP > 0)
+        {
+            ResetMovement();
+            CalculateCarryWeight();
+            AP--;
+        }
+        //
+
+        //if (Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Alpha1))
+        //    SetAction(0);
+
+        //if (Input.GetKeyDown(KeyCode.Keypad2) || Input.GetKeyDown(KeyCode.Alpha2))
+        //    SetAction(1);
+
+        //if (Input.GetKeyDown(KeyCode.Keypad3) || Input.GetKeyDown(KeyCode.Alpha3))
+        //    SetAction(2);
+
+        //if (Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Alpha4))
+        //    equippedEquipment.UseEffect();
+
+        //if (Input.GetKeyDown(KeyCode.Mouse1))
+        //{
+        //    bool ableToConfirm = true;
+
+        //    if (SelectedAction == Actions.SuppressShot)
+        //    {
+        //        PaintTarget();
+
+        //        if(suppressionTarget == null)
+        //        {
+        //            ableToConfirm = false;
+        //        }
+        //    }
+
+        //    if (ableToConfirm)
+        //    {
+        //        KD_CC.cantLook = true;
+        //        ShootingStateMachine.SetInteger("ShootingMode", (int)SelectedAction + 1);
+        //        roundManager.HUD_Player_ConfirmText.SetActive(true);
+        //    }
+        //}
 
         if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
         {
@@ -227,9 +262,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
             roundManager.HUD_Player_ConfirmText.SetActive(true);
             roundManager.EndUnitTurn();
         }
-
-        if (Input.GetKeyDown(KeyCode.Keypad4))
-            equippedEquipment.UseEffect();
 
         if (Input.GetKeyDown(KeyCode.M))
             roundManager.ToggleMiniMap();
@@ -287,13 +319,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void OrientUnitIcon()
     {
-        //NonRotatingCanvas.transform.LookAt(-1 * Vector3.forward);
         NonRotatingCanvas.transform.rotation = Quaternion.identity;
-
-        //if (NonRotatingCanvas.transform.rotation != NonRotatingCanvasDefault)
-        //NonRotatingCanvas.transform.rotation = NonRotatingCanvasDefault;
-        //UnitIcon.transform.rotation = new Quaternion(45, 0, 0, 0);
-        //UnitIcon.rectTransform.rotation = UnitIconOrientation;
     }
 
     public virtual void CalculateCarryWeight()
@@ -317,7 +343,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
             DamageToTake = Damage - (equippedArmor.DamageResistance[(int)DamageType]);
 
-            if (Damage > 0)
+            if (DamageToTake > 0)
             {
                 ChangeTeamNerve(-DamageToTake);
                 characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - DamageToTake;
@@ -336,11 +362,22 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         suppressionTarget = null;
 
+        Unit_Master possibleSuppressionTarget = null;
+
         if (LookedAtUnit_Master != null)
-            suppressionTarget = LookedAtUnit_Master;
+            possibleSuppressionTarget = LookedAtUnit_Master;
 
         if (LookedAtUnit_VehicleHardPoint != null)
-            suppressionTarget = LookedAtUnit_VehicleHardPoint.GetComponentInParent<Unit_Master>();
+            possibleSuppressionTarget = LookedAtUnit_VehicleHardPoint.GetComponentInParent<Unit_Master>();
+
+        if (possibleSuppressionTarget != null)
+        {
+            if (possibleSuppressionTarget.characterSheet.UnitStat_Initiative < characterSheet.UnitStat_Initiative)
+                suppressionTarget = possibleSuppressionTarget;
+
+            else
+                roundManager.AddNotificationToFeed("Can't suppress " + possibleSuppressionTarget.characterSheet.UnitStat_Name);
+        }
     }
 
     public virtual void TrackSuppressTarget()

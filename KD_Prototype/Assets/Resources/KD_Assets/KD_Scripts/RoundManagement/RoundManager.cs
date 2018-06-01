@@ -13,6 +13,8 @@ public class RoundManager : MonoBehaviour
 
     public GameObject ExitApplicationPanel;
 
+    public Text RemainingAP;
+
     #region TeamColors
     [Header("Team Colors")]
     [SerializeField]
@@ -176,6 +178,8 @@ public class RoundManager : MonoBehaviour
         if (SelectedUnit is Unit_VehicleMaster)
         {
             Unit_VehicleMaster x = (Unit_VehicleMaster)SelectedUnit;
+
+            if (x.CurrentPilot_Character != null)
             HUD_Player_nameText.text = x.characterSheet.UnitStat_Name + "(" + x.CurrentPilot_Character.UnitStat_Name + ")";
         }
 
@@ -188,6 +192,8 @@ public class RoundManager : MonoBehaviour
         PlayerStatUpdates();
 
         ToggleTargetHUD();
+
+        RemainingAP.text = "AP: " + SelectedUnit.AP + " Ammo" + SelectedUnit.Ammo;
     }
 
     public void ToggleTargetHUD()
@@ -310,7 +316,7 @@ public class RoundManager : MonoBehaviour
         if (DmgToDealTimesShotCount < 0)
             DmgToDealTimesShotCount = 0;
 
-        ProbableAmountOfDamageToDeal_Text.text = "Avg Dmg: " + (int)DmgToDealTimesShotCount + " (" + DmgToDealWithResist + " x " + ProbableNumberOfShotsToHit + ")";
+        ProbableAmountOfDamageToDeal_Text.text = "Avg Dmg: " + (int)DmgToDealTimesShotCount + " (" + DmgToDealWithResist + " DMG x " + ProbableNumberOfShotsToHit + " Shots)";
     }
     void UpdatePlayerTargetName()
     {
@@ -686,6 +692,10 @@ public class RoundManager : MonoBehaviour
         DeactivateSuppressors();
 
         isInMapMode = true;
+
+        AudioListener tempCamAudioListener = MapCamera.GetComponent<AudioListener>();
+        tempCamAudioListener.enabled = true;
+
         Cursor.lockState = CursorLockMode.None;
         ResetPlayerHUD();
         PlayerHUD.gameObject.SetActive(false);
@@ -751,6 +761,9 @@ public class RoundManager : MonoBehaviour
     {
         Cursor.lockState = CursorLockMode.Locked;
         isInMapMode = false;
+
+        AudioListener tempCamAudioListener = MapCamera.GetComponent<AudioListener>();
+        tempCamAudioListener.enabled = false;
 
         PlayerHUD.gameObject.SetActive(true);
 

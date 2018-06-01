@@ -9,7 +9,7 @@ public class Character_SCRAPS_Noah : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Noah";
-        UnitStat_StartingHitPoints = 16;
+        UnitStat_StartingHitPoints = 26;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 82;

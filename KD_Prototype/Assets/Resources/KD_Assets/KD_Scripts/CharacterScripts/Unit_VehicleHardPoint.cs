@@ -37,7 +37,7 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 
             DamageToTake = Damage - (AttachedArmor.DamageResistance[(int)DamageType]);
 
-            if (Damage > 0)
+            if (DamageToTake > 0)
             {
                 HitPoints = HitPoints - DamageToTake;
             }
@@ -53,6 +53,8 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
     void DestroyHardPoint(string Attacker)
     {
         isDestroyed = true;
+
+        OwnerVehicle.ChangeTeamNerve(-15);
 
         roundManager = FindObjectOfType<RoundManager>();
         roundManager.AddNotificationToFeed(Attacker + " destroyed " + HardPointName);

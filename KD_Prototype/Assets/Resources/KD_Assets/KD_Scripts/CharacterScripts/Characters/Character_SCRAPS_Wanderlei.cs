@@ -9,7 +9,7 @@ public class Character_SCRAPS_Wanderlei : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Wanderlei";
-        UnitStat_StartingHitPoints = 18;
+        UnitStat_StartingHitPoints = 21;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 51;

@@ -9,7 +9,7 @@ public class Character_SCRAPS_Anderson : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Anderson";
-        UnitStat_StartingHitPoints = 19;
+        UnitStat_StartingHitPoints = 26;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 79;

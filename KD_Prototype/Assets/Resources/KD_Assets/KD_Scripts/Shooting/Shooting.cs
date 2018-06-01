@@ -20,6 +20,15 @@ public class Shooting : MonoBehaviour
     public GameObject DamageCube;
     public GameObject DamageSphere;
 
+    internal AudioSource audioSource;
+    float audioSource_Pitch_Min = 0.75f;
+    float audioSource_Pitch_Max = 1.25f;
+
+    public void Start()
+    {
+        audioSource = this.gameObject.GetComponent<AudioSource>();
+    }
+
     #region Thomas Shooting
     //private void DetectAccuracy()
     //{
@@ -153,33 +162,43 @@ public class Shooting : MonoBehaviour
         {
             ShotsFired = 0;
 
+            if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
+                PlayClip_FiringSound();
+
             while (ShotsFired < unit.equippedWeapon.ShotCount)
             {
-
-                #region Shooting Code Block
-
-                DirectionToFire = CalculateAccuracy(AccMod);
-
-                RaycastHit objectToBeHit;
-
-                if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range))
+                if (unit.isDead == false)
                 {
-                    if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
-                    {
-                        SingleTargetEffect(objectToBeDamaged, objectToBeHit);
-                    }
+                    #region Shooting Code Block
 
-                    if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.AoeShot)
+                    DirectionToFire = CalculateAccuracy(AccMod);
+
+                    RaycastHit objectToBeHit;
+
+                    if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.AoeShot)
+                        PlayClip_FiringSound();
+
+                    #region Firing the weapon
+                    if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range))
                     {
-                        AoeEffect(objectToBeDamaged, objectToBeHit);
+                        if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
+                        {
+                            SingleTargetEffect(objectToBeDamaged, objectToBeHit);
+                        }
+
+                        if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.AoeShot)
+                        {
+                            AoeEffect(objectToBeDamaged, objectToBeHit);
+                        }
                     }
+                    #endregion
+
+                    #endregion
                 }
-
-                #endregion
 
                 ShotsFired++;
 
-                if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot)
+                if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.AoeShot)
                 {
                     yield return new WaitForSeconds(unit.equippedWeapon.FireRate);
                 }
@@ -194,6 +213,8 @@ public class Shooting : MonoBehaviour
         }
 
         isFiring = false;
+
+        PlayClip_ReloadSound();
     }
 
     public void SingleTargetEffect(IDamagable objectToDamage, RaycastHit objectToHit)
@@ -240,12 +261,31 @@ public class Shooting : MonoBehaviour
 
             GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
 
-            dmgSphere.transform.localScale =
-                new Vector3(unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius);
+            //Use this again later
+            //dmgSphere.transform.localScale =
+            //    new Vector3(unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius);
 
             DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
 
             dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
         }
+    }
+
+    public void PlayClip_FiringSound()
+    {
+        if (audioSource.clip != unit.equippedWeapon.Firing_Clip)
+            audioSource.clip = unit.equippedWeapon.Firing_Clip;
+
+        audioSource.pitch = UnityEngine.Random.Range(audioSource_Pitch_Min, audioSource_Pitch_Max);
+        audioSource.Play();
+    }
+
+    public void PlayClip_ReloadSound()
+    {
+        if (audioSource.clip != unit.equippedWeapon.Reload_Clip)
+            audioSource.clip = unit.equippedWeapon.Reload_Clip;
+
+        audioSource.pitch = 1;
+        audioSource.Play();
     }
 }

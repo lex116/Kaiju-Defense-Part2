@@ -9,7 +9,7 @@ public class Character_SCRAPS_Arlo : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SCRAPS;
         UnitStat_Name = "Arlo";
-        UnitStat_StartingHitPoints = 16;
+        UnitStat_StartingHitPoints = 25;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 54;

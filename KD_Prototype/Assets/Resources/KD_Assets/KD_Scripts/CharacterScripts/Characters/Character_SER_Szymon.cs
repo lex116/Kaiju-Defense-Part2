@@ -9,7 +9,7 @@ public class Character_SER_Szymon : Character_Master
     {
         UnitStat_FactionTag = FactionTag.SER;
         UnitStat_Name = "Szymon";
-        UnitStat_StartingHitPoints = 21;
+        UnitStat_StartingHitPoints = 24;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
         UnitStat_Reaction = 97;

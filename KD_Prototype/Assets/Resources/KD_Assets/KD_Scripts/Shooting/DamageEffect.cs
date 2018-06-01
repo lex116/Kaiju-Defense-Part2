@@ -8,12 +8,18 @@ public class DamageEffect : MonoBehaviour
 
 	void Start ()
     {
-        Invoke("DestroySelf", 0.5f);
+        Invoke("DestroyTracer", 0.5f);
+        Invoke("DestroySelf", 4f);
 	}
 	
     void DestroySelf()
     {
         Destroy(this.gameObject);
+    }
+
+    void DestroyTracer()
+    {
+        Destroy(tracer);
     }
 
     public void SetOrigin(Vector3 origin)
