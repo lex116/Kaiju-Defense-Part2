@@ -20,9 +20,6 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public override void Awake()
     {
-        ShotAccMods[0] = QuickShotAccMod;
-        ShotAccMods[1] = AimedShotAccMod;
-        ShotAccMods[2] = SuppressShotAccMod;
         cantBeControlled = true;
         SetCharacter();
         SetItems();
@@ -32,6 +29,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         CalculateWeaponStats();
         SetHardPoints();
         UnitIconName.text = characterSheet.UnitStat_Name;
+
+        SetActions();
     }
 
     public void InstancePilot()
@@ -63,7 +62,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public void PilotDisembark()
     {
-        roundManager.EndUnitTurn();
+        //roundManager.EndUnitTurn();
 
         GameObject tempNewPilot = Instantiate(HumanPrefab, EjectPos.transform.position, EjectPos.transform.rotation);
         Unit_Human tempUnit_HumanScript = tempNewPilot.GetComponent<Unit_Human>();
@@ -117,7 +116,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         isDead = true;
 
-        Destroy(KD_CC);
+        //Destroy(KD_CC);
 
         foreach (Transform x in transform)
         {
@@ -140,8 +139,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public override void Interaction()
     {
-        PilotDisembark();
-        roundManager.EndUnitTurn();
+        //PilotDisembark();
+        //roundManager.EndUnitTurn();
     }
 
     public override void ChangeNerve(int change)

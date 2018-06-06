@@ -20,8 +20,10 @@ public class Item_Master : ScriptableObject
     };
 
     public DamageTypes damageType;
+
+    //temp
     [SerializeField]
-    internal int Ammo;
+    internal int Ammo = 10;
     public int AmmoType;
     public int Weight;
     public int Range;

@@ -7,6 +7,17 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    enum Manager_States
+    {
+        State_StartingBattle,
+        State_StartingRound,
+        State_MapOverview,
+        State_UnitActing,
+        State_EndingRound
+    }
+
+    Manager_States CurrentState;
+
     public GameObject InitiativeOrderBar;
 
     public Text ProbableAmountOfDamageToDeal_Text;
@@ -69,6 +80,8 @@ public class RoundManager : MonoBehaviour
     public Text HUD_Player_heldEquipmentText;
     public Text HUD_Player_accText;
     public Text HUD_Player_ActionText;
+    //Temp
+    public Text HUD_Player_StateText;
     public GameObject HUD_Player_ConfirmText;
 
     public Text HUD_Player_Target_nameText;
@@ -120,17 +133,7 @@ public class RoundManager : MonoBehaviour
     public bool TurnIsEnding;
     #endregion
 
-    #region TimeScaleFields
-    [SerializeField]
-    public List<TimeScaleAction> TimeScaleOrder = new List<TimeScaleAction>();
-    public int CurrentTime;
-    [SerializeField]
-    List<TimeScaleAction> QueuedActions = new List<TimeScaleAction>();
-    [SerializeField]
-    public TimeScaleAction[] ActionsToActivate;
-
-    #endregion
-
+    //
 
     #region Utility Methods
     // Mouse Locking
@@ -144,6 +147,9 @@ public class RoundManager : MonoBehaviour
 
     void Update()
     {
+
+
+
         if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false && ExitApplicationPanel.activeSelf == false)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -187,13 +193,14 @@ public class RoundManager : MonoBehaviour
 
         HUD_Player_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
 
-        HUD_Player_ActionText.text = "" + SelectedUnit.SelectedAction;
+        HUD_Player_ActionText.text = "" + SelectedUnit.Selected_Unit_Action;
+        HUD_Player_StateText.text = "" + SelectedUnit.Current_Unit_State;
 
         PlayerStatUpdates();
 
         ToggleTargetHUD();
 
-        RemainingAP.text = "AP: " + SelectedUnit.AP + " Ammo" + SelectedUnit.Ammo;
+        RemainingAP.text = "AP: " + SelectedUnit.AP;
     }
 
     public void ToggleTargetHUD()
@@ -243,10 +250,12 @@ public class RoundManager : MonoBehaviour
             SelectedUnit.characterSheet.unitType == Character_Master.UnitTypes.Mecha)
         {
             Unit_VehicleMaster SelectedVehicle = (Unit_VehicleMaster)SelectedUnit;
-            currentNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve;
-            startingNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_StartingNerve;
-
-            HUD_Player_nerveText.text = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve.ToString();
+            if (SelectedVehicle.CurrentPilot_Character != null)
+            {
+                currentNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve;
+                startingNerve = SelectedVehicle.CurrentPilot_Character.UnitStat_StartingNerve;
+                HUD_Player_nerveText.text = SelectedVehicle.CurrentPilot_Character.UnitStat_Nerve.ToString();
+            }
         }
 
         HUD_Player_TargetNerve = (currentNerve / startingNerve);
@@ -278,7 +287,7 @@ public class RoundManager : MonoBehaviour
     }
     void UpdatePlayerAcc()
     {
-        HUD_Player_TargetAcc = SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAcc;
+        HUD_Player_TargetAcc = SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAccuracyModifier;
 
         if (HUD_Player_DisplayAcc > HUD_Player_TargetAcc)
             HUD_Player_DisplayAcc--;
@@ -309,7 +318,7 @@ public class RoundManager : MonoBehaviour
         if (SelectedUnit.LookedAtUnit_VehicleHardPoint != null)
             DmgToDealWithResist = SelectedUnit.equippedWeapon.Damage - SelectedUnit.LookedAtUnit_VehicleHardPoint.AttachedArmor.DamageResistance[(int)SelectedUnit.equippedWeapon.damageType];
 
-        int ProbableNumberOfShotsToHit = (int)Math.Ceiling(((SelectedUnit.equippedWeapon.ShotCount * SelectedUnit.equippedWeapon.BurstCount) * ((SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAcc) / 100)));
+        int ProbableNumberOfShotsToHit = (int)Math.Ceiling(((SelectedUnit.equippedWeapon.ShotCount * SelectedUnit.equippedWeapon.BurstCount) * ((SelectedUnit.Calculated_WeaponAccuracy * SelectedUnit.CurrentShotAccuracyModifier) / 100)));
 
         int DmgToDealTimesShotCount = DmgToDealWithResist * ProbableNumberOfShotsToHit;
 
@@ -600,7 +609,6 @@ public class RoundManager : MonoBehaviour
     //Order all units in the scene by initiative, remove dead units, select the first unit
     void StartRound()
     {
-        CurrentTime = 0;
         OrderUnitsByInitiative();
         DestroyDeadUnits();
         SelectTheFirstUnit();
@@ -751,10 +759,10 @@ public class RoundManager : MonoBehaviour
 
     public void DeactivateSuppressors()
     {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            x.ToggleSuppression(false);
-        }
+        //foreach (Unit_Master x in initiativeOrder)
+        //{
+        //    x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Waiting;
+        //}
     }
 
     public void DeactivateMapCam()
@@ -783,39 +791,14 @@ public class RoundManager : MonoBehaviour
     {
         foreach (Unit_Master x in initiativeOrder)
         {
-            if (x.suppressionTarget == SelectedUnit)
+            if (x.Current_Unit_Suppression_State != Unit_Master.Unit_Suppression_States.State_Waiting)
             {
-                x.ToggleSuppression(true);
-            }
-            else
-            {
-                x.ToggleSuppression(false);
-            }
-        }
-    }
-
-    // Adds an action to the list to be called later, sets it's priority, calls EndUnitTurn
-    public void AddAction(TimeScaleAction TSA_ToBeAdded)
-    {
-        SelectedUnit.IsBeingControlled = false;
-
-        int priorityOffset = 0;
-
-        TSA_ToBeAdded.timeScalePosition = TSA_ToBeAdded.timeScaleOffSet + CurrentTime;
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == TSA_ToBeAdded.timeScalePosition)
-            {
-                priorityOffset++;
+                if (x.suppressionTarget == SelectedUnit)
+                    x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Suppressing;
+                else
+                    x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_WaitingToSuppress;
             }
         }
-
-        TSA_ToBeAdded.timeScalePriority = priorityOffset;
-
-        TimeScaleOrder.Add(TSA_ToBeAdded);
-
-        EndUnitTurn();
     }
 
     //Ends the unit's turn and calls FindNextActionsToActivate as a result
@@ -823,58 +806,7 @@ public class RoundManager : MonoBehaviour
     {
         TurnIsEnding = true;
         MiniMapTransformReset();
-        SetActionsToActivate();
-        ActivateActionsToActivate();
-    }
-
-    // Finds all the actions that should be called this time unit
-    public void SetActionsToActivate()
-    {
-        QueuedActions.Clear();
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == CurrentTime)
-            {
-                QueuedActions.Add(x);
-            }
-        }
-
-        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
-    }
-
-    // Activates the actions that should be activated this time unit
-    public void ActivateActionsToActivate()
-    {
-        StartCoroutine(ActivateActionsRoutine());
-    }
-    IEnumerator ActivateActionsRoutine()
-    {
-        foreach (TimeScaleAction x in ActionsToActivate)
-        {
-            if (x.ActionConditional() == true)
-            {
-                x.ActionEffect();
-
-                while (x.ActingUnit.shooting.isFiring)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-            }
-        }
-
-        yield return new WaitForSeconds(1f);
-
-        ActionsToActivate = null;
-
-        IncrememntTime();
         SelectNewUnitToActivate();
-    }
-
-    // Steps the timescale forward
-    void IncrememntTime()
-    {
-        CurrentTime++;
     }
 
     //Selects next unit in the initiative order
@@ -927,86 +859,7 @@ public class RoundManager : MonoBehaviour
     //Any clean up, then call RoundProcess
     void EndRound()
     {
-        ActivateRemainingActions();
-    }
-
-    //activate all remaining actions
-    void ActivateRemainingActions()
-    {
-        StartCoroutine(ActivateRemainingActionsRoutine());
-    }
-    IEnumerator ActivateRemainingActionsRoutine()
-    {
-        QueuedActions.Clear();
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition == CurrentTime)
-            {
-                QueuedActions.Add(x);
-            }
-        }
-
-        ActionsToActivate = QueuedActions.OrderBy(x => x.timeScalePriority).ToArray();
-
-        foreach (TimeScaleAction x in ActionsToActivate)
-        {
-            if (x.ActingUnit.isDead == false)
-            {
-                x.ActionEffect();
-
-                while (x.ActingUnit.shooting.isFiring)
-                {
-                    yield return new WaitForFixedUpdate();
-                }
-
-                yield return new WaitForFixedUpdate();
-            }
-        }
-
-        ActionsToActivate = null;
-
-        int numberOfRemainingActions = 0;
-
-        foreach (TimeScaleAction x in TimeScaleOrder)
-        {
-            if (x.timeScalePosition > CurrentTime)
-            {
-                numberOfRemainingActions++;
-            }
-        }
-
-        if (numberOfRemainingActions > 0)
-        {
-            IncrememntTime();
-            ActivateRemainingActions();
-        }
-
-        if (numberOfRemainingActions == 0)
-        {
-            ClearOldActions();
-            ResetAllUnitStateMachines();
-
-            AddNotificationToFeed("End of Round");
-
-            StartRound();
-        }
-    }
-
-    //Removes used up actions from the timescale
-    public void ClearOldActions()
-    {
-        TimeScaleOrder.RemoveAll(TimeScaleAction => TimeScaleAction.timeScalePosition <= CurrentTime);
-    }
-
-    //Sets all units back to waiting before the next round
-    public void ResetAllUnitStateMachines()
-    {
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            if (x != null)
-            x.ResetStateMachine();
-        }
+        StartRound();
     }
     #endregion
 

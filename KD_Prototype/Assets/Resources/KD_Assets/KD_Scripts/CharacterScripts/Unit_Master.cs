@@ -4,11 +4,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    internal float CurrentShotAccuracyModifier = 0;
+
+    public Action_Master[] Unit_Actions = new Action_Master[10];
+    public Action_Master Selected_Unit_Action;
+
+    internal enum Unit_States
+    {
+        State_Waiting,
+        State_Moving,
+        State_PreparingToAct,
+        State_Shooting,
+        State_Dying,
+        State_UsingEquipment,
+        State_Embarking,
+        State_Ejecting,
+        State_ActivatingAbility
+    }
+
+    [SerializeField]
+    internal Unit_States Current_Unit_State;
+
+    internal enum Unit_Suppression_States
+    {
+        State_Waiting,
+        State_WaitingToSuppress,
+        State_Suppressing
+    }
+
+    internal Unit_Suppression_States Current_Unit_Suppression_State;
+
     internal int AP = 2;
-    internal int Ammo = 15;
+    internal int Starting_Ap = 2;
+
+    AudioListener CameraAudioListener;
 
     public GameObject NonRotatingCanvas;
     public Text UnitIconName;
@@ -17,14 +48,8 @@ public class Unit_Master : MonoBehaviour, IDamagable
     internal float QuickShotAccMod = 0.75f;
     internal float AimedShotAccMod = 1f;
     internal float SuppressShotAccMod = 0.60f;
-    
-    internal float[] ShotAccMods = new float[3];
 
     internal float PanicAccMod = 0.75f;
-
-    internal float CurrentShotAcc;
-
-    internal int FieldOfViewChangeRate = 200;
 
     internal bool cantBeControlled;
 
@@ -54,7 +79,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     [Header("Components")]
     internal KD_CharacterController KD_CC;
     public Shooting shooting;
-    public Animator ShootingStateMachine;
     public Camera playerCamera;
     internal RoundManager roundManager;
     public Transform dectionNodes;
@@ -77,14 +101,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region Unit Input
-    public enum Actions
-    {
-        QuickShot,
-        AimedShot,
-        SuppressShot
-    }
     [Header("Input")]
-    public Actions SelectedAction;
 
     internal bool IsBeingControlled;
     //This doesnt do anything but it could if we change the way targetting works
@@ -94,6 +111,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     internal Unit_Master LookedAtUnit_Master;
     internal Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
+
     internal float DefaultFOV = 60;
     internal float TargetFOV;
     internal bool isAbleToSuppress;
@@ -109,12 +127,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Armor_Master equippedArmor;
     #endregion
 
-    #region Utility + Setup Methods + Player Input
+    //
+
+    #region Set Up
     public virtual void Awake()
     {
-        ShotAccMods[0] = QuickShotAccMod;
-        ShotAccMods[1] = AimedShotAccMod;
-        ShotAccMods[2] = SuppressShotAccMod;
         SetUpComponents();
         SetCharacter();
         SetItems();
@@ -122,37 +139,22 @@ public class Unit_Master : MonoBehaviour, IDamagable
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
         CalculateWeaponStats();
         UnitIconName.text = characterSheet.UnitStat_Name;
+        TargetFOV = DefaultFOV;
+
+        Current_Unit_State = Unit_States.State_Waiting;
+        Current_Unit_Suppression_State = Unit_Suppression_States.State_Waiting;
+
+        SetActions();
     }
 
     public void SetCharacter()
     {
         characterSheet = (Character_Master)ScriptableObject.CreateInstance((selectedCharacter).ToString());
     }
-
-    public void SetUpComponents()
-    {
-        KD_CC = GetComponent<KD_CharacterController>();
-        shooting = GetComponent<Shooting>();
-        shooting.unit = this;
-        ShootingStateMachine = GetComponent<Animator>();
-        roundManager = FindObjectOfType<RoundManager>();
-        movementPosition = this.transform.position;
-
-        ResetMovement();
-    }
-
-    public void Start()
-    {
-        //this is for when unis get spawned in and need te references for some reason
-        SetItems();
-    }
-
     public virtual void SetItems()
     {
         if (equippedWeapon == null)
             equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
-
-
 
         if (equippedEquipment == null)
             equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
@@ -164,112 +166,81 @@ public class Unit_Master : MonoBehaviour, IDamagable
         equippedEquipment.DeployableThrowForce = DeployableThrowForce;
         equippedEquipment.DeployableOwner = this;
     }
-
-    public void ToggleControl(bool toggle)
+    public void SetUpComponents()
     {
-        CalculateWeaponStats();
-        playerCamera.gameObject.SetActive(toggle);
-        AudioListener tempCamAudioListener = playerCamera.GetComponent<AudioListener>();
-        tempCamAudioListener.enabled = toggle;
-        IsBeingControlled = toggle;
-
-        SetAction(0);
-        CalculateCarryWeight();
-
-        //temp
-        ResetAP();
+        KD_CC = GetComponent<KD_CharacterController>();
+        shooting = GetComponent<Shooting>();
+        shooting.unit = this;
+        roundManager = FindObjectOfType<RoundManager>();
+        CameraAudioListener = playerCamera.GetComponent<AudioListener>();
+        movementPosition = this.transform.position;
+        ResetMovement();
     }
 
+    public void SetActions()
+    {
+        Unit_Actions[1] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_Dash");
+        Unit_Actions[2] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_QuickShot");
+        Unit_Actions[3] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_AimedShot");
+        Unit_Actions[4] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_SuppressShot");
+        Unit_Actions[5] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_UseEquipment");
+        Unit_Actions[0] = null;
+    }
+    #endregion
+
+    #region Clean Up, Resets, Calculations
     public void ResetAP()
     {
-        AP = 2;
+        AP = Starting_Ap;
     }
+    public virtual void CalculateWeaponStats()
+    {
+        //
+    }
+    public virtual void CalculateCarryWeight()
+    {
+        float CarryCapacity = characterSheet.UnitStat_Fitness / 4;
+        float CarryWeight = equippedWeapon.Weight + equippedEquipment.Weight + equippedArmor.Weight;
+        float CarryWeightDifference = CarryCapacity - CarryWeight;
+        float Encumberance = CarryWeightDifference / CarryCapacity;
 
+        startingMovementPoints = characterSheet.UnitStat_Fitness;
+        movementPointsRemaining = startingMovementPoints * Encumberance;
+    }
+    #endregion
+
+    #region Updates
     public void FixedUpdate()
     {
-        if (IsBeingControlled && isDead == false)
-            KD_CC.InputUpdate();
+        //ChangeCameraFOV();
+
+        KD_CC.GroundCheckUpdate();
+
+        if (Current_Unit_State != Unit_States.State_Dying)
+            SpendMovement();
+
+        if (Current_Unit_State == Unit_States.State_Moving &&
+            movementPointsRemaining > 0)
+            KD_CC.MovementUpdate();
+
+        if (Current_Unit_State == Unit_States.State_Moving ||
+            Current_Unit_State == Unit_States.State_PreparingToAct)
+            KD_CC.LookUpdate();
     }
 
     public void Update()
     {
-        if (IsBeingControlled && isDead == false)
+        if (IsBeingControlled && !isDead)
         {
             PlayerInput();
-            SpendMovement();
             LookAtTarget();
-            ChangeCameraFOV();
         }
 
         OrientUnitIcon();
     }
+    #endregion
 
-    public virtual void PlayerInput()
-    {
-        //TESTING
-        if (Input.GetKeyDown(KeyCode.Mouse0) && AP > 0 && Ammo > 0)
-        {
-            shooting.TestShooting(QuickShotAccMod);
-            AP--;
-            Ammo--;
-        }
-
-        if (Input.GetKeyDown(KeyCode.KeypadEnter) && AP > 0)
-        {
-            ResetMovement();
-            CalculateCarryWeight();
-            AP--;
-        }
-        //
-
-        //if (Input.GetKeyDown(KeyCode.Keypad1) || Input.GetKeyDown(KeyCode.Alpha1))
-        //    SetAction(0);
-
-        //if (Input.GetKeyDown(KeyCode.Keypad2) || Input.GetKeyDown(KeyCode.Alpha2))
-        //    SetAction(1);
-
-        //if (Input.GetKeyDown(KeyCode.Keypad3) || Input.GetKeyDown(KeyCode.Alpha3))
-        //    SetAction(2);
-
-        //if (Input.GetKeyDown(KeyCode.Keypad4) || Input.GetKeyDown(KeyCode.Alpha4))
-        //    equippedEquipment.UseEffect();
-
-        //if (Input.GetKeyDown(KeyCode.Mouse1))
-        //{
-        //    bool ableToConfirm = true;
-
-        //    if (SelectedAction == Actions.SuppressShot)
-        //    {
-        //        PaintTarget();
-
-        //        if(suppressionTarget == null)
-        //        {
-        //            ableToConfirm = false;
-        //        }
-        //    }
-
-        //    if (ableToConfirm)
-        //    {
-        //        KD_CC.cantLook = true;
-        //        ShootingStateMachine.SetInteger("ShootingMode", (int)SelectedAction + 1);
-        //        roundManager.HUD_Player_ConfirmText.SetActive(true);
-        //    }
-        //}
-
-        if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded)
-        {
-            KD_CC.cantMove = true;
-            roundManager.HUD_Player_ConfirmText.SetActive(true);
-            roundManager.EndUnitTurn();
-        }
-
-        if (Input.GetKeyDown(KeyCode.M))
-            roundManager.ToggleMiniMap();
-
-        if (Input.GetKeyDown(KeyCode.E))
-            Interaction();
-    }
-
+    #region HUD or UI
     public virtual void LookAtTarget()
     {
         LookedAtUnit_Master = null;
@@ -286,51 +257,125 @@ public class Unit_Master : MonoBehaviour, IDamagable
             }
         }
     }
-
-    public virtual void CalculateWeaponStats()
-    {
-        //
-    }
-
-    public void SetAction(int selection)
-    {
-        SelectedAction = (Actions)selection;
-
-        CurrentShotAcc = ShotAccMods[selection];
-
-        if (SelectedAction == Actions.QuickShot)
-            TargetFOV = DefaultFOV;
-
-        if (SelectedAction == Actions.AimedShot)
-            TargetFOV = DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100));
-
-        if (SelectedAction == Actions.SuppressShot)
-            TargetFOV = (DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)) / 2) ;
-    }
-
+    //Currently does nothing
     public void ChangeCameraFOV()
     {
-        if (playerCamera.fieldOfView < TargetFOV)
-            playerCamera.fieldOfView = playerCamera.fieldOfView + 0.01f * FieldOfViewChangeRate;
+        #region storage
+        //TargetFOV = (int)(DefaultFOV - (DefaultFOV* (Calculated_WeaponAccuracy / 100)));
+        ////playerCamera.fieldOfView = (int)(DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)));
 
-        if (playerCamera.fieldOfView > TargetFOV)
-            playerCamera.fieldOfView = playerCamera.fieldOfView - 0.01f * FieldOfViewChangeRate;
+        //TargetFOV = DefaultFOV;
+        ////playerCamera.fieldOfView = DefaultFOV;
+        #endregion
+
+        //if (playerCamera.fieldOfView != TargetFOV)
+        //{
+        //    if (playerCamera.fieldOfView < TargetFOV)
+        //        playerCamera.fieldOfView = playerCamera.fieldOfView + FieldOfViewChangeRate;
+
+        //    if (playerCamera.fieldOfView > TargetFOV)
+        //        playerCamera.fieldOfView = playerCamera.fieldOfView - FieldOfViewChangeRate;
+        //}
     }
-
     public void OrientUnitIcon()
     {
         NonRotatingCanvas.transform.rotation = Quaternion.identity;
     }
+    #endregion
 
-    public virtual void CalculateCarryWeight()
+    #region Player Input
+    public void ToggleControl(bool toggle)
     {
-        float CarryCapacity = characterSheet.UnitStat_Fitness / 4;
-        float CarryWeight = equippedWeapon.Weight + equippedEquipment.Weight + equippedArmor.Weight;
-        float CarryWeightDifference = CarryCapacity - CarryWeight;
-        float Encumberance = CarryWeightDifference / CarryCapacity;
+        playerCamera.gameObject.SetActive(toggle);
+        CameraAudioListener.enabled = toggle;
+        IsBeingControlled = toggle;
 
-        startingMovementPoints = characterSheet.UnitStat_Fitness;
-        movementPointsRemaining = startingMovementPoints * Encumberance;
+        if (toggle == true)
+        {
+            Current_Unit_State = Unit_States.State_Moving;
+            Current_Unit_Suppression_State = Unit_Suppression_States.State_Waiting;
+            Selected_Unit_Action = Unit_Actions[1];
+            ResetAP();
+            CalculateWeaponStats();
+            CalculateCarryWeight();
+        }
+
+        if (toggle == false)
+            Current_Unit_State = Unit_States.State_Waiting;
+    }
+    public virtual void PlayerInput()
+    {
+        //Switch between moving and firing mode
+        if (Input.GetKeyDown(KeyCode.Mouse1))
+        {
+            if (Current_Unit_State == Unit_States.State_Moving)
+            {
+                Current_Unit_State = Unit_States.State_PreparingToAct;
+                ChangeAction(1);
+            }
+
+            else if (Current_Unit_State == Unit_States.State_PreparingToAct)
+            {
+                Current_Unit_State = Unit_States.State_Moving;
+                ChangeAction(1);
+            }
+        }
+
+        if (Current_Unit_State == Unit_States.State_PreparingToAct)
+        {
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+                UseSelectedAction();
+
+            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+                ChangeAction(1);
+
+            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+                ChangeAction(2);
+
+            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+                ChangeAction(3);
+
+            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
+                ChangeAction(4);
+
+            if (Input.GetKeyDown(KeyCode.Alpha5) || Input.GetKeyDown(KeyCode.Keypad5))
+                ChangeAction(5);
+        }
+
+        if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded && Current_Unit_State == Unit_States.State_Moving)
+        {
+            roundManager.HUD_Player_ConfirmText.SetActive(true);
+            roundManager.EndUnitTurn();
+        }
+
+        if (Input.GetKeyDown(KeyCode.M))
+            roundManager.ToggleMiniMap();
+
+        //if (Input.GetKeyDown(KeyCode.E))
+        //    Interaction();
+    }
+    public virtual void Interaction()
+    {
+        //
+    }
+
+    public void UseSelectedAction()
+    {
+        if (AP >= Selected_Unit_Action.Action_AP_Cost && Selected_Unit_Action.CheckRequirements(this) == true)
+        {
+            AP = AP - Selected_Unit_Action.Action_AP_Cost;
+            Selected_Unit_Action.Action_Effect(this);
+        }
+        else
+            roundManager.AddNotificationToFeed("Can't use that action!");
+    }
+    public void ChangeAction(int Selection)
+    {
+        if (Selected_Unit_Action != null)
+            Selected_Unit_Action.Deselection_Effect(this);
+
+        Selected_Unit_Action = Unit_Actions[Selection];
+        Selected_Unit_Action.Selection_Effect(this);
     }
     #endregion
 
@@ -449,16 +494,17 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public void SpendMovement()
     {
-        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPosition.x);
-        movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPosition.z);
+        if (KD_CC.characterController.isGrounded)
+        {
+            movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPosition.x);
+            movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPosition.z);
+        }
 
         movementPosition = this.transform.position;
 
         if (movementPointsRemaining <= 0)
         {
             movementPointsRemaining = 0;
-            if (KD_CC.characterController.isGrounded)
-                KD_CC.cantMove = true;
         }
     }
 
@@ -466,14 +512,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         movementPointsRemaining = startingMovementPoints;
         hasNoMovementRemaining = false;
-        KD_CC.cantMove = false;
-        KD_CC.cantLook = false;
-    }
-
-    public void ResetStateMachine()
-    {
-        ShootingStateMachine.SetBool("isSPR", false);
-        ShootingStateMachine.SetBool("Reset", true);
     }
 
     public virtual void Die(string Attacker)
@@ -529,15 +567,5 @@ public class Unit_Master : MonoBehaviour, IDamagable
             characterSheet.initiativeRolled = true;
         }
     }
-
-    public void ToggleSuppression(bool toggle)
-    {
-        isAbleToSuppress = toggle;
-    }
     #endregion
-
-    public virtual void Interaction()
-    {
-        //
-    }
 } 

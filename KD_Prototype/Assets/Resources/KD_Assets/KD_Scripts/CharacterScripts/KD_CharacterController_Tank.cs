@@ -23,21 +23,15 @@ public class KD_CharacterController_Tank : KD_CharacterController
 
     #region Methods
 
-    // Use this for every frame jolly good tip tip
-    public override void InputUpdate()
+    public override void LookUpdate()
     {
-        if (!cantMove)
-        {
-            RotateBody();
-            ThrottleBody();
-        }
+        RotateTurret();
+    }
 
-        if (!cantLook)
-        {
-            RotateTurret();
-        }
-
-        GroundCheck();
+    public override void MovementUpdate()
+    {
+        RotateBody();
+        ThrottleBody();
     }
 
     public void RotateBody()

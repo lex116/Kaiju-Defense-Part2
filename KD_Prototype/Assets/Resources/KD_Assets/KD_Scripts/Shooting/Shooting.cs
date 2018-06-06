@@ -215,6 +215,11 @@ public class Shooting : MonoBehaviour
         isFiring = false;
 
         PlayClip_ReloadSound();
+
+        if (unit.AP > 0)
+            unit.Current_Unit_State = Unit_Master.Unit_States.State_PreparingToAct;
+        else
+            unit.Current_Unit_State = Unit_Master.Unit_States.State_Moving;
     }
 
     public void SingleTargetEffect(IDamagable objectToDamage, RaycastHit objectToHit)

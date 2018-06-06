@@ -52,13 +52,13 @@ public class FragGrenade_Behavior : MonoBehaviour
 
         RoundManager RM = FindObjectOfType<RoundManager>();
 
-        Action_ActivateFragGrenade newActivateGrenade = new Action_ActivateFragGrenade();
+        //Action_ActivateFragGrenade newActivateGrenade = new Action_ActivateFragGrenade();
 
-        newActivateGrenade.SetUp(RM.SelectedUnit, RM.SelectedUnit.TargetUnit);
+        //newActivateGrenade.SetUp(RM.SelectedUnit, RM.SelectedUnit.TargetUnit);
 
-        newActivateGrenade.thisGrenade = this;
+        //newActivateGrenade.thisGrenade = this;
 
-        RM.AddAction(newActivateGrenade);
+        //RM.AddAction(newActivateGrenade);
 
         ExplosionSphere.SetActive(true);
 

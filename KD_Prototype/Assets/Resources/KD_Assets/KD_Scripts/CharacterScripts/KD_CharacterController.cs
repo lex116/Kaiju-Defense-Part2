@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class KD_CharacterController : MonoBehaviour
 {
-    public bool cantMove;
-    public bool cantLook;
-
     #region MouseFields
     public GameObject AimingNode;
     internal float mouseSensitivity = 1;
@@ -30,20 +27,19 @@ public class KD_CharacterController : MonoBehaviour
 
     #region Methods
 
-    // Use this for every frame jolly good tip tip
-    public virtual void InputUpdate()
+    public void GroundCheckUpdate()
     {
-        if (!cantMove)
-        {
-            MovePlayer();
-        }
-
-        if (!cantLook)
-        {
-            RotateCamera();
-        }
-
         GroundCheck();
+    }
+
+    public virtual void MovementUpdate()
+    {
+        MovePlayer();
+    }
+
+    public virtual void LookUpdate()
+    {
+        RotateCamera();
     }
 
     // Looking around via mouse
