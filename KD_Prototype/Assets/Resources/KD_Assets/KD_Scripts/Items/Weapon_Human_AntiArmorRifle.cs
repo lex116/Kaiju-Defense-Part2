@@ -22,5 +22,7 @@ public class Weapon_Human_AntiArmorRifle : Weapon_Master
     {
         Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
         Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
+
+        Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Rifle"));
     }
 }

@@ -4,6 +4,14 @@ using UnityEngine;
 
 public class Equipment_Master : Item_Master
 {
+    internal enum EquipmentTypes
+    {
+        SingleTarget,
+        Deployable
+    }
+
+    internal EquipmentTypes EquipmentType;
+
     public int HealingValue;
     public int EffectDuration;
 

@@ -9,8 +9,8 @@ public class Weapon_Vehicle_MachineGun : Weapon_Master
         Item_Name = "Heavy MachineGun";
         Damage = 8;
         damageType = DamageTypes.Puncture;
-        Accuracy = 70;
-        ShotCount = 12;
+        Accuracy = 55;
+        ShotCount = 10;
         BurstCount = 1;
         Range = 300;
         FireRate = 0.10f;
@@ -22,5 +22,7 @@ public class Weapon_Vehicle_MachineGun : Weapon_Master
     {
         Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
         Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
+
+        Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_MachineGun"));
     }
 }

@@ -23,7 +23,7 @@ public class Item_Master : ScriptableObject
 
     //temp
     [SerializeField]
-    internal int Ammo = 10;
+    internal int Ammo = 100;
     public int AmmoType;
     public int Weight;
     public int Range;

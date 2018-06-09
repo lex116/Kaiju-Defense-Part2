@@ -16,12 +16,14 @@ public class Weapon_Vehicle_Cannon : Weapon_Master
         FireRate = 4f;
         fireMode = FireModes.AoeShot;
         Weight = 35;
-        EffectRadius = 25;
+        EffectRadius = 15;
     }
 
     public override void SetUp()
     {
         Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
         Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
+
+        Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Cannon"));
     }
 }

@@ -31,6 +31,9 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         UnitIconName.text = characterSheet.UnitStat_Name;
 
         SetActions();
+
+        Default_Reticle = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Default"));
+        roundManager.Reticle.sprite = Default_Reticle;
     }
 
     public void InstancePilot()

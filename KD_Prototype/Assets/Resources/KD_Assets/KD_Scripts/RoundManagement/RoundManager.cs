@@ -7,6 +7,20 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    public Image Reticle;
+
+    public GameObject Player_HUD_Basic;
+    public GameObject Player_HUD_Moving;
+    public GameObject Player_HUD_Action;
+    public GameObject Player_HUD_Shooting;
+    public GameObject Player_HUD_Equipment;
+
+    internal Color32 ActionIcon_Selected_Opacity = new Color32 (255, 255, 255, 255);
+    internal Color32 ActionIcon_NotSelected_Opacity = new Color32 (255, 255, 255, 50);
+
+    [SerializeField]
+    List<Image> ActionTray = new List<Image>();
+
     enum Manager_States
     {
         State_StartingBattle,
@@ -147,9 +161,6 @@ public class RoundManager : MonoBehaviour
 
     void Update()
     {
-
-
-
         if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false && ExitApplicationPanel.activeSelf == false)
         {
             Cursor.lockState = CursorLockMode.Locked;
@@ -162,7 +173,7 @@ public class RoundManager : MonoBehaviour
 
         if (SelectedUnit != null && SelectedUnit.isDead == true && TurnIsEnding == false)
         {
-            SelectedUnit = null;
+            //SelectedUnit = null;
             EndUnitTurn();
         }
 
@@ -193,14 +204,14 @@ public class RoundManager : MonoBehaviour
 
         HUD_Player_nameText.text = SelectedUnit.characterSheet.UnitStat_Name;
 
-        HUD_Player_ActionText.text = "" + SelectedUnit.Selected_Unit_Action;
+        HUD_Player_ActionText.text = "" + SelectedUnit.Selected_Unit_Action.Action_Name;
         HUD_Player_StateText.text = "" + SelectedUnit.Current_Unit_State;
 
         PlayerStatUpdates();
 
         ToggleTargetHUD();
 
-        RemainingAP.text = "AP: " + SelectedUnit.AP;
+        RemainingAP.text = "AP: " + SelectedUnit.AP + " -> " + (SelectedUnit.AP - SelectedUnit.Selected_Unit_Action.Action_AP_Cost);
     }
 
     public void ToggleTargetHUD()
@@ -225,6 +236,8 @@ public class RoundManager : MonoBehaviour
         UpdatePlayerNerve();
         UpdatePlayerHp();
         UpdatePlayerAcc();
+
+        UpdatePlayerActions();
     }
 
     void UpdatePlayerStamina()
@@ -296,6 +309,20 @@ public class RoundManager : MonoBehaviour
             HUD_Player_DisplayAcc++;
 
         HUD_Player_accText.text = (int)HUD_Player_DisplayAcc + "%";
+    }
+
+    void UpdatePlayerActions()
+    {
+        for (int i = 0; i < ActionTray.Count; i++)
+        {
+            ActionTray[i].sprite = SelectedUnit.Unit_Actions[i+1].Action_Icon;
+
+            if (i + 1 == Array.IndexOf(SelectedUnit.Unit_Actions, SelectedUnit.Selected_Unit_Action))
+                ActionTray[i].color = ActionIcon_Selected_Opacity;
+
+            else
+                ActionTray[i].color = ActionIcon_NotSelected_Opacity;
+        }
     }
     #endregion
 
@@ -804,6 +831,9 @@ public class RoundManager : MonoBehaviour
     //Ends the unit's turn and calls FindNextActionsToActivate as a result
     public void EndUnitTurn()
     {
+        SelectedUnit.Current_Unit_State = Unit_Master.Unit_States.State_Waiting;
+        SelectedUnit.CameraAudioListener.enabled = false;
+
         TurnIsEnding = true;
         MiniMapTransformReset();
         SelectNewUnitToActivate();
@@ -859,9 +889,23 @@ public class RoundManager : MonoBehaviour
     //Any clean up, then call RoundProcess
     void EndRound()
     {
+        ResetUnitStateMachines();
         StartRound();
     }
     #endregion
+
+    public void ResetUnitStateMachines()
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            x.StopAllCoroutines();
+            x.isOnSuppressionCooldown = false;
+            x.shooting.StopAllCoroutines();
+            x.shooting.isFiring = false;
+            x.Current_Unit_State = Unit_Master.Unit_States.State_Waiting;
+            x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Waiting;
+        }
+    }
 
     public void ToggleExitApplicationCanvas()
     {

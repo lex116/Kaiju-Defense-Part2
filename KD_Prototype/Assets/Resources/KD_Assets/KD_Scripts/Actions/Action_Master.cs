@@ -6,6 +6,17 @@ public class Action_Master : ScriptableObject
 {
     internal string Action_Name;
     internal int Action_AP_Cost;
+    internal Sprite Action_Icon;
+
+    void Awake()
+    {
+        SetUp();
+    }
+
+    public virtual void SetUp()
+    {
+        //
+    }
 
     public virtual void Action_Effect(Unit_Master Action_Owner)
     {

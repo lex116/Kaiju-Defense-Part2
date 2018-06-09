@@ -29,80 +29,6 @@ public class Shooting : MonoBehaviour
         audioSource = this.gameObject.GetComponent<AudioSource>();
     }
 
-    #region Thomas Shooting
-    //private void DetectAccuracy()
-    //{
-    //    float accuracy = 0;
-    //    int accuracyMeasurementsIncriments = 50;
-    //    //draw 100 raycasts in the hit zone, of the 100 add 1 to the accuracy %
-    //    float startX = Screen.width / 2 - (referenceManager.HitBoxImage.rectTransform.rect.width / 2);
-    //    float endX = Screen.width / 2 + (referenceManager.HitBoxImage.rectTransform.rect.width / 2);
-    //    float currentX = startX;
-    //    float incrimentX = Mathf.Abs(endX - startX) / accuracyMeasurementsIncriments;
-
-    //    float startY = Screen.height / 2 - (referenceManager.HitBoxImage.rectTransform.rect.height / 2);
-    //    float endY = Screen.height / 2 + (referenceManager.HitBoxImage.rectTransform.rect.height / 2);
-    //    float currentY = Screen.height / 2;
-    //    float incrimentY = Mathf.Abs(endY - startY) / accuracyMeasurementsIncriments;
-
-    //    //measure across X axis
-    //    for (int i = 0; i < accuracyMeasurementsIncriments; i++)
-    //    {
-    //        accuracy += DrawRaycast(currentX, currentY);
-    //        currentX += incrimentX;
-    //    }
-    //    currentX = Screen.width / 2;
-    //    for (int i = 0; i < accuracyMeasurementsIncriments; i++)
-    //    {
-    //        accuracy += DrawRaycast(currentX, currentY);
-    //        currentY += incrimentY;
-    //    }
-    //    //accuracy *= currentWeapon.Accuracy / 100f;
-    //}
-
-    //private int DrawRaycast(float xScreenPos, float yScreenPos)
-    //{
-    //    RaycastHit[] hits;
-    //    DrawRaycast(xScreenPos, yScreenPos, out hits);
-    //    for (int i = 0; i < hits.Length; i++)
-    //    {
-    //        if (hits[i].collider.gameObject.GetComponent<Unit>())
-    //        {
-    //            return 1;
-    //        }
-    //    }
-    //    return 0;
-    //}
-
-    //private void DrawRaycast(float xScreenPos, float yScreenPos, out RaycastHit [] hits)
-    //{
-    //    Ray ray = new Ray(Camera.main.ScreenToWorldPoint(new Vector3(Screen.width / 2, Screen.height / 2, 0f)), Camera.main.transform.forward);
-    //    hits = Physics.RaycastAll(ray, range, layerMask: LayerMask.NameToLayer("Default"), queryTriggerInteraction: QueryTriggerInteraction.Ignore);
-    //}
-
-    //public void Shoot()
-    //{
-    //    for (int j = 0; j < currentWeapon.ShotCount; j++)
-    //    {
-    //        RaycastHit[] hits;
-    //        DrawRaycast(UnityEngine.Random.Range(referenceManager.HitBoxImage.rectTransform.rect.xMin, referenceManager.HitBoxImage.rectTransform.rect.xMax),
-    //            UnityEngine.Random.Range(referenceManager.HitBoxImage.rectTransform.rect.yMin, referenceManager.HitBoxImage.rectTransform.rect.yMax), out hits);
-    //        for (int i = 0; i < hits.Length; i++)
-    //        {
-    //            if (hits[i].collider.gameObject.GetComponent<Unit>())
-    //            {
-    //                //random in weapon accuracy for hit calculation
-    //                if (UnityEngine.Random.Range(0, 100) <= currentWeapon.Accuracy)
-    //                    {
-    //                        hits[i].collider.gameObject.GetComponent<IDamagable>().TakeDamage(currentWeapon.Damage);
-    //                    }
-    //            }
-    //        }
-    //    }
-
-    //}
-    #endregion
-
     public Vector3 CalculateAccuracy(float accMod)
     {
         float Accuracy_WithModifier = unit.Calculated_WeaponAccuracy * accMod;
@@ -216,10 +142,16 @@ public class Shooting : MonoBehaviour
 
         PlayClip_ReloadSound();
 
-        if (unit.AP > 0)
+        if (unit.Current_Unit_Suppression_State == Unit_Master.Unit_Suppression_States.State_Waiting)
+        {
             unit.Current_Unit_State = Unit_Master.Unit_States.State_PreparingToAct;
-        else
-            unit.Current_Unit_State = Unit_Master.Unit_States.State_Moving;
+
+            if (unit.AP == 0)
+            {
+                unit.ToggleMovingState();
+                unit.roundManager.Reticle.sprite = unit.Default_Reticle;
+            }
+        }
     }
 
     public void SingleTargetEffect(IDamagable objectToDamage, RaycastHit objectToHit)
@@ -249,7 +181,7 @@ public class Shooting : MonoBehaviour
         {
             RaycastHit hit;
 
-            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, Mathf.Infinity))
+            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, unit.equippedWeapon.EffectRadius))
             {
                 if (hit.collider == x)
                 {
@@ -265,10 +197,6 @@ public class Shooting : MonoBehaviour
             }
 
             GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
-
-            //Use this again later
-            //dmgSphere.transform.localScale =
-            //    new Vector3(unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius, unit.equippedWeapon.EffectRadius);
 
             DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
 

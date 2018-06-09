@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    internal Throwing throwing;
+    internal int throwRange = 75;
+
+    internal Sprite Default_Reticle;
+
     internal float CurrentShotAccuracyModifier = 0;
 
     public Action_Master[] Unit_Actions = new Action_Master[10];
@@ -34,12 +39,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         State_Suppressing
     }
 
+    [SerializeField]
     internal Unit_Suppression_States Current_Unit_Suppression_State;
 
     internal int AP = 2;
     internal int Starting_Ap = 2;
 
-    AudioListener CameraAudioListener;
+    internal AudioListener CameraAudioListener;
 
     public GameObject NonRotatingCanvas;
     public Text UnitIconName;
@@ -47,7 +53,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     internal float QuickShotAccMod = 0.75f;
     internal float AimedShotAccMod = 1f;
-    internal float SuppressShotAccMod = 0.60f;
+    internal float SuppressShotAccMod = 0.40f;
 
     internal float PanicAccMod = 0.75f;
 
@@ -125,6 +131,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Weapon_Master equippedWeapon;
     public Equipment_Master equippedEquipment;
     public Armor_Master equippedArmor;
+
     #endregion
 
     //
@@ -145,6 +152,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Current_Unit_Suppression_State = Unit_Suppression_States.State_Waiting;
 
         SetActions();
+
+        Default_Reticle = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Default"));
+        roundManager.Reticle.sprite = Default_Reticle;
     }
 
     public void SetCharacter()
@@ -173,7 +183,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
         shooting.unit = this;
         roundManager = FindObjectOfType<RoundManager>();
         CameraAudioListener = playerCamera.GetComponent<AudioListener>();
+        CameraAudioListener.enabled = false;
         movementPosition = this.transform.position;
+        throwing = GetComponent<Throwing>();
+        throwing.unit = this;
+        throwing.LaunchTransform = AimingNode.transform;
+        throwing.lineRenderer = GetComponent<LineRenderer>();
         ResetMovement();
     }
 
@@ -184,6 +199,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         Unit_Actions[3] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_AimedShot");
         Unit_Actions[4] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_SuppressShot");
         Unit_Actions[5] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_UseEquipment");
+        Unit_Actions[6] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_Interaction");
         Unit_Actions[0] = null;
     }
     #endregion
@@ -212,8 +228,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #region Updates
     public void FixedUpdate()
     {
-        //ChangeCameraFOV();
-
         KD_CC.GroundCheckUpdate();
 
         if (Current_Unit_State != Unit_States.State_Dying)
@@ -226,6 +240,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
         if (Current_Unit_State == Unit_States.State_Moving ||
             Current_Unit_State == Unit_States.State_PreparingToAct)
             KD_CC.LookUpdate();
+
+        if (Current_Unit_Suppression_State == Unit_Suppression_States.State_Suppressing)
+            SuppressionUpdate();
     }
 
     public void Update()
@@ -257,16 +274,21 @@ public class Unit_Master : MonoBehaviour, IDamagable
             }
         }
     }
-    //Currently does nothing
-    public void ChangeCameraFOV()
+
+    public void ResetCameraFOV()
+    {
+        playerCamera.fieldOfView = DefaultFOV;
+    }
+    public void ScaleCameraFOV()
     {
         #region storage
-        //TargetFOV = (int)(DefaultFOV - (DefaultFOV* (Calculated_WeaponAccuracy / 100)));
-        ////playerCamera.fieldOfView = (int)(DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)));
+        TargetFOV = (int)(DefaultFOV - (DefaultFOV * ((Calculated_WeaponAccuracy * CurrentShotAccuracyModifier) / 100)));
+
+        playerCamera.fieldOfView = TargetFOV;
+        //playerCamera.fieldOfView = (int)(DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)));
 
         //TargetFOV = DefaultFOV;
-        ////playerCamera.fieldOfView = DefaultFOV;
-        #endregion
+        //playerCamera.fieldOfView = DefaultFOV;
 
         //if (playerCamera.fieldOfView != TargetFOV)
         //{
@@ -276,7 +298,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
         //    if (playerCamera.fieldOfView > TargetFOV)
         //        playerCamera.fieldOfView = playerCamera.fieldOfView - FieldOfViewChangeRate;
         //}
+        #endregion
     }
+
     public void OrientUnitIcon()
     {
         NonRotatingCanvas.transform.rotation = Quaternion.identity;
@@ -298,28 +322,24 @@ public class Unit_Master : MonoBehaviour, IDamagable
             ResetAP();
             CalculateWeaponStats();
             CalculateCarryWeight();
+
+            roundManager.Player_HUD_Basic.SetActive(true);
+            roundManager.Player_HUD_Moving.SetActive(true);
+            roundManager.Player_HUD_Action.SetActive(false);
+            roundManager.Player_HUD_Shooting.SetActive(false);
+            roundManager.Player_HUD_Equipment.SetActive(false);
         }
 
         if (toggle == false)
+        {
             Current_Unit_State = Unit_States.State_Waiting;
+        }
     }
     public virtual void PlayerInput()
     {
         //Switch between moving and firing mode
         if (Input.GetKeyDown(KeyCode.Mouse1))
-        {
-            if (Current_Unit_State == Unit_States.State_Moving)
-            {
-                Current_Unit_State = Unit_States.State_PreparingToAct;
-                ChangeAction(1);
-            }
-
-            else if (Current_Unit_State == Unit_States.State_PreparingToAct)
-            {
-                Current_Unit_State = Unit_States.State_Moving;
-                ChangeAction(1);
-            }
-        }
+            ToggleMovingState();
 
         if (Current_Unit_State == Unit_States.State_PreparingToAct)
         {
@@ -340,6 +360,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
             if (Input.GetKeyDown(KeyCode.Alpha5) || Input.GetKeyDown(KeyCode.Keypad5))
                 ChangeAction(5);
+
+            if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6))
+                ChangeAction(6);
         }
 
         if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded && Current_Unit_State == Unit_States.State_Moving)
@@ -351,12 +374,37 @@ public class Unit_Master : MonoBehaviour, IDamagable
         if (Input.GetKeyDown(KeyCode.M))
             roundManager.ToggleMiniMap();
 
+        //if (Input.GetKeyDown(KeyCode.L))
+        //{
+        //    throwing.isTargetting = true;
+        //}
+
         //if (Input.GetKeyDown(KeyCode.E))
         //    Interaction();
     }
     public virtual void Interaction()
     {
         //
+    }
+
+    public virtual void ToggleMovingState()
+    {
+        if (Current_Unit_State == Unit_States.State_Moving)
+        {
+            roundManager.Player_HUD_Moving.SetActive(false);
+            roundManager.Player_HUD_Action.SetActive(true);
+            Current_Unit_State = Unit_States.State_PreparingToAct;
+            ChangeAction(1);
+
+        }
+
+        else if (Current_Unit_State == Unit_States.State_PreparingToAct)
+        {
+            roundManager.Player_HUD_Moving.SetActive(true);
+            roundManager.Player_HUD_Action.SetActive(false);
+            Current_Unit_State = Unit_States.State_Moving;
+            ChangeAction(1);
+        }
     }
 
     public void UseSelectedAction()
@@ -448,7 +496,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public virtual void SuppressionUpdate()
     {
-        if (isAbleToSuppress == true && isDead == false && suppressionTarget!= null)
+        if (isDead == false && suppressionTarget!= null && suppressionTarget.isDead == false)
         {
             TrackSuppressTarget();
 
@@ -516,7 +564,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public virtual void Die(string Attacker)
     {
-
+        //
     }
 
     public virtual void ChangeNerve(int change)

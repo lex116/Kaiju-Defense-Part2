@@ -10,6 +10,11 @@ public class Action_Basic_AimedShot : Action_Master
         Action_AP_Cost = 2;
     }
 
+    public override void SetUp()
+    {
+        Action_Icon = (Resources.Load<Sprite>("KD_Sprites/KD_ActionIcon_AimedShot"));
+    }
+
     public override void Action_Effect(Unit_Master Action_Owner)
     {
         Action_Owner.Current_Unit_State = Unit_Master.Unit_States.State_Shooting;
@@ -40,11 +45,17 @@ public class Action_Basic_AimedShot : Action_Master
     {
         Action_Owner.roundManager.AddNotificationToFeed("Selected Aimed Shot!");
         Action_Owner.CurrentShotAccuracyModifier = Action_Owner.AimedShotAccMod;
+        Action_Owner.ScaleCameraFOV();
+        Action_Owner.roundManager.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
+        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     { 
         Action_Owner.roundManager.AddNotificationToFeed("Deselected Aimed Shot!");
         Action_Owner.CurrentShotAccuracyModifier = 0;
+        Action_Owner.ResetCameraFOV();
+        Action_Owner.roundManager.Reticle.sprite = Action_Owner.Default_Reticle;
+        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(false);
     }
 }

@@ -7,29 +7,15 @@ public class Equipment_Human_FragGrenadePack : Equipment_Master
     public Equipment_Human_FragGrenadePack()
     {
         Item_Name = "Frag Grenades";
+        EffectRadius = 10;
+        Damage = 10;
+        damageType = DamageTypes.Explosive;
+        EquipmentType = EquipmentTypes.Deployable;
     }
 
     public override void SetUp()
     {
         Ammo = 2;
         Projectile = (GameObject)(Resources.Load("KD_Assets/KD_Prefabs/FragGrenade"));
-    }
-
-    public override void UseEffect()
-    {
-        if (Ammo > 0)
-        { 
-            GameObject tempGrenadeGO =
-                Instantiate(Projectile, DeployableSpawnLocation.transform.position, DeployableSpawnLocation.transform.rotation);
-
-            Rigidbody tempGrenadeRB = tempGrenadeGO.GetComponent<Rigidbody>();
-
-            FragGrenade_Behavior tempGrenadeScript = tempGrenadeGO.GetComponent<FragGrenade_Behavior>();
-            tempGrenadeScript.Owner = DeployableOwner;
-
-            tempGrenadeRB.AddForce(DeployableSpawnLocation.transform.forward * DeployableThrowForce);
-
-            Ammo = Ammo - 1;
-        }
     }
 }

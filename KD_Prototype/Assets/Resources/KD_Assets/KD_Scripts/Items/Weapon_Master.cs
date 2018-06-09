@@ -15,4 +15,6 @@ public class Weapon_Master : Item_Master
         AoeShot
     }
     public FireModes fireMode;
+
+    public Sprite Reticle_Sprite;
 }
