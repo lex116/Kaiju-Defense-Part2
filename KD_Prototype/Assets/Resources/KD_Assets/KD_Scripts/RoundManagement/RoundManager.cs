@@ -324,6 +324,7 @@ public class RoundManager : MonoBehaviour
                 ActionTray[i].color = ActionIcon_NotSelected_Opacity;
         }
     }
+
     #endregion
 
     #region TargetStatUpdates
@@ -474,12 +475,14 @@ public class RoundManager : MonoBehaviour
         {
             miniMapIsDefault = true;
             InitiativeOrderBar.SetActive(false);
+            Reticle.gameObject.SetActive(true);
         }
 
         else if (miniMapIsDefault == true)
         {
             miniMapIsDefault = false;
             InitiativeOrderBar.SetActive(true);
+            Reticle.gameObject.SetActive(false);
         }
     }
 

@@ -18,6 +18,14 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
     public Unit_VehicleHardPoint SecondaryEquipment;
     public Unit_VehicleHardPoint Locomotion;
 
+    public string ActivateText
+    {
+        get
+        {
+            return "Enter Vehicle";
+        }
+    }
+
     public override void Awake()
     {
         cantBeControlled = true;
@@ -142,8 +150,8 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public override void Interaction()
     {
-        //PilotDisembark();
-        //roundManager.EndUnitTurn();
+        PilotDisembark();
+        roundManager.EndUnitTurn();
     }
 
     public override void ChangeNerve(int change)
