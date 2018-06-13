@@ -21,9 +21,9 @@ public class Character_SCRAPS_Noah : Character_Master
         UnitStat_StartingNerve = 83;
         //startingMovementPoints;
 
-        selectedWeapon = Weapons.Weapon_Human_MachineGun;
+        selectedWeapon = Weapons.Weapon_Human_AntiArmorRifle;
         selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
-        selectedArmor = Armors.Armor_Human_BodyArmor;
+        selectedArmor = Armors.Armor_Human_Uniform;
 
         unitType = UnitTypes.Human;
     }

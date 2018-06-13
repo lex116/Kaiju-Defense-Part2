@@ -22,7 +22,7 @@ public class Throwing : MonoBehaviour
     internal float currentMaximumVerticalDisplacement = 0;
     internal float gravity;
 
-    int resolution = 20;
+    int resolution = 10;
 
     internal bool isDrawingLaunchPath;
 
@@ -120,19 +120,22 @@ public class Throwing : MonoBehaviour
 
     public void CeilingCheck()
     {
+        currentMaximumVerticalDisplacement = DefaultMaximumVerticalDisplacement;
+
         RaycastHit hit;
 
-        if (Physics.Raycast(unit.transform.position, unit.transform.up, out hit, currentMaximumVerticalDisplacement))
+        if (Physics.Raycast(LaunchTransform.transform.position, LaunchTransform.transform.up, out hit, DefaultMaximumVerticalDisplacement))
         {
             if (hit.collider != null)
             {
                 currentMaximumVerticalDisplacement = hit.point.y - ceilingOffset;
+                //currentMaximumVerticalDisplacement = transform.position.y + ceilingOffset;
             }
 
-            else
-            {
-                currentMaximumVerticalDisplacement = DefaultMaximumVerticalDisplacement;
-            }
+            //else
+            //{
+            //    currentMaximumVerticalDisplacement = DefaultMaximumVerticalDisplacement;
+            //}
         }
     }
 

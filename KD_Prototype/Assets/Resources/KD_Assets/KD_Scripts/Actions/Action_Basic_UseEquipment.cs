@@ -26,6 +26,8 @@ public class Action_Basic_UseEquipment : Action_Master
         }
 
         Action_Owner.equippedEquipment.UseEffect();
+
+        Action_Owner.equippedEquipment.Ammo = Action_Owner.equippedEquipment.Ammo - 1;
     }
 
     public override bool CheckRequirements(Unit_Master Action_Owner)
@@ -59,6 +61,8 @@ public class Action_Basic_UseEquipment : Action_Master
             Action_Owner.throwing.isTargetting = true;
             Action_Owner.throwing.ToggleTargettingGraphics(true);
         }
+
+        Action_Owner.roundManager.Player_HUD_Equipment.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
@@ -70,5 +74,7 @@ public class Action_Basic_UseEquipment : Action_Master
             Action_Owner.throwing.isTargetting = false;
             Action_Owner.throwing.ToggleTargettingGraphics(false);
         }
+
+        Action_Owner.roundManager.Player_HUD_Equipment.SetActive(false);
     }
 }

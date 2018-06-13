@@ -187,7 +187,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         movementPosition = this.transform.position;
         throwing = GetComponent<Throwing>();
         throwing.unit = this;
-        throwing.LaunchTransform = AimingNode.transform;
+        throwing.LaunchTransform = DeployableSpawnLocation.transform;
         throwing.lineRenderer = GetComponent<LineRenderer>();
         ResetMovement();
     }

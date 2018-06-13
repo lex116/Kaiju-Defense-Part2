@@ -8,14 +8,23 @@ public class Deployable_Behavior_Master : MonoBehaviour
 
     public GameObject DamageSphere;
 
+    bool isArmed;
+
     void Awake()
     {
+        Invoke("Arm", 1f);
+    }
 
+    void Arm()
+    {
+        isArmed = true;
     }
 
     public void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject != DeployableOwner.gameObject)
+        if (other.gameObject != DeployableOwner.gameObject 
+            && other.gameObject.transform.parent != DeployableOwner.gameObject
+            && isArmed)
         {
             Detonate();
         }
@@ -34,7 +43,7 @@ public class Deployable_Behavior_Master : MonoBehaviour
 
             if (DeployableOwner.AP == 0)
             {
-                DeployableOwner.Current_Unit_State = Unit_Master.Unit_States.State_Moving;
+                DeployableOwner.ToggleMovingState();
             }
         }
 

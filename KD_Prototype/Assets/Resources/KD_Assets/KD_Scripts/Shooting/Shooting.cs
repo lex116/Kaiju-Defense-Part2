@@ -175,13 +175,23 @@ public class Shooting : MonoBehaviour
 
     public void AoeEffect(IDamagable objectToDamage, RaycastHit objectToHit)
     {
+        objectToDamage = objectToHit.collider.gameObject.GetComponent<IDamagable>();
+
+        if (objectToDamage != unit.GetComponent<IDamagable>())
+        {
+            if (objectToDamage != null)
+            {
+                objectToDamage.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
+            }
+        }
+
         Collider[] hitColliders = Physics.OverlapSphere(objectToHit.point, unit.equippedWeapon.EffectRadius);
 
         foreach (Collider x in hitColliders)
         {
             RaycastHit hit;
 
-            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, unit.equippedWeapon.EffectRadius))
+            if (Physics.Raycast(objectToHit.point, (x.transform.position - objectToHit.point).normalized, out hit, unit.equippedWeapon.EffectRadius))
             {
                 if (hit.collider == x)
                 {
@@ -189,19 +199,19 @@ public class Shooting : MonoBehaviour
 
                     objectToBeDamaged = x.gameObject.GetComponent<IDamagable>();
 
-                    if (objectToBeDamaged != null)
+                    if (objectToBeDamaged != null && objectToBeDamaged != objectToDamage)
                     {
                         objectToBeDamaged.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
                     }
                 }
             }
-
-            GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
-
-            DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
-
-            dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
         }
+
+        GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
+
+        DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
+
+        dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
     }
 
     public void PlayClip_FiringSound()

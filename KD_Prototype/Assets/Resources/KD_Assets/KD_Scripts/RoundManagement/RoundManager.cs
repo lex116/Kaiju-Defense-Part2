@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    public GameObject EndOfBattleCanvas;
+
     public Image Reticle;
 
     public GameObject Player_HUD_Basic;
@@ -26,8 +28,10 @@ public class RoundManager : MonoBehaviour
         State_StartingBattle,
         State_StartingRound,
         State_MapOverview,
+        State_InMenu,
         State_UnitActing,
-        State_EndingRound
+        State_EndingRound,
+        State_EndingBattle
     }
 
     Manager_States CurrentState;
@@ -173,7 +177,6 @@ public class RoundManager : MonoBehaviour
 
         if (SelectedUnit != null && SelectedUnit.isDead == true && TurnIsEnding == false)
         {
-            //SelectedUnit = null;
             EndUnitTurn();
         }
 
@@ -183,6 +186,8 @@ public class RoundManager : MonoBehaviour
         {
             ToggleExitApplicationCanvas();
         }
+
+        CheckWinCondition();
     }
     #endregion
 
@@ -924,5 +929,37 @@ public class RoundManager : MonoBehaviour
     public void ExitApplication()
     {
         Application.Quit();
+    }
+
+    public void CheckWinCondition()
+    {
+        int PlayerUnits = 0;
+        int EnemyUnits = 0;
+
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x.isDead == false)
+            {
+                if (x.characterSheet.UnitStat_FactionTag == Character_Master.FactionTag.SER)
+                {
+                    PlayerUnits++;
+                }
+
+                if (x.characterSheet.UnitStat_FactionTag != Character_Master.FactionTag.SER)
+                {
+                    EnemyUnits++;
+                }
+            }
+        }
+
+        if (PlayerUnits == 0 || EnemyUnits == 0)
+        {
+            EndBattle();
+        }
+    }
+
+    public void EndBattle()
+    {
+        EndOfBattleCanvas.SetActive(true);
     }
 }

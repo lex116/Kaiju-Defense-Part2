@@ -22,11 +22,7 @@ public class Deployable_Behavior_FragGrenadePack : Deployable_Behavior_Master
 
                     if (objectToBeDamaged != null)
                     {
-                        int damageToDeal = DeployableOwner.equippedEquipment.Damage;
-
-                        float dist = Vector3.Distance(x.transform.position, transform.position);
-
-                        objectToBeDamaged.TakeDamage(damageToDeal, DeployableOwner.equippedEquipment.damageType, DeployableOwner.characterSheet.UnitStat_Name);
+                        objectToBeDamaged.TakeDamage(DeployableOwner.equippedEquipment.Damage, DeployableOwner.equippedEquipment.damageType, DeployableOwner.characterSheet.UnitStat_Name);
                     }
                 }
             }
