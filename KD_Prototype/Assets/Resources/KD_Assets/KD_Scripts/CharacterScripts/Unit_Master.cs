@@ -427,7 +427,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     }
     #endregion
 
-    #region Combat Methods  
+    #region Combat Methods
     public void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
         if (isDead == false)
@@ -616,4 +616,4 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
     #endregion
-} 
+}
