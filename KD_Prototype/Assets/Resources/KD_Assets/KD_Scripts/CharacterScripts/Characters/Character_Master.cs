@@ -46,7 +46,8 @@ public class Character_Master : ScriptableObject
 
     internal enum Equipment
     {
-        Equipment_Human_FragGrenadePack
+        Equipment_Human_FragGrenadePack,
+        Equipment_Human_SmokeGrenadePack
     }
     internal Equipment selectedEquipment;
 

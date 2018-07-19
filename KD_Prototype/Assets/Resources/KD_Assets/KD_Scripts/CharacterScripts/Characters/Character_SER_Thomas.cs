@@ -22,7 +22,7 @@ public class Character_SER_Thomas : Character_Master
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Human_AntiArmorRifle;
-        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedEquipment = Equipment.Equipment_Human_SmokeGrenadePack;
         selectedArmor = Armors.Armor_Human_Uniform;
 
         unitType = UnitTypes.Human;

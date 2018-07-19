@@ -22,7 +22,7 @@ public class Character_SCRAPS_Mason : Character_Master
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Human_Shotgun;
-        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedEquipment = Equipment.Equipment_Human_SmokeGrenadePack;
         selectedArmor = Armors.Armor_Human_HeavyArmor;
 
         unitType = UnitTypes.Human;

@@ -5,10 +5,7 @@ using UnityEngine;
 
 public class Shooting : MonoBehaviour
 {
-    ReferenceManager referenceManager;
-    internal Weapon_Master[] Weapons;
-
-    Weapon_Master currentWeapon;
+    Weapon_Master currentWeapon = null;
 
     public Unit_Master unit;
 
@@ -23,6 +20,8 @@ public class Shooting : MonoBehaviour
     internal AudioSource audioSource;
     float audioSource_Pitch_Min = 0.75f;
     float audioSource_Pitch_Max = 1.25f;
+
+    LayerMask rayMask = ~((1 << 14) | (1 << 2));
 
     public void Start()
     {
@@ -105,7 +104,7 @@ public class Shooting : MonoBehaviour
                         PlayClip_FiringSound();
 
                     #region Firing the weapon
-                    if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range))
+                    if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range, rayMask))
                     {
                         if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
                         {
@@ -185,7 +184,7 @@ public class Shooting : MonoBehaviour
             }
         }
 
-        Collider[] hitColliders = Physics.OverlapSphere(objectToHit.point, unit.equippedWeapon.EffectRadius);
+        Collider[] hitColliders = Physics.OverlapSphere(objectToHit.point, unit.equippedWeapon.EffectRadius / 2);
 
         foreach (Collider x in hitColliders)
         {

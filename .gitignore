@@ -32,3 +32,5 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+KD_Prototype/.vs/KD_Prototype/v15/Server/sqlite3/db.lock
+KD_Prototype/.vs/KD_Prototype/v15/Server/sqlite3/db.lock

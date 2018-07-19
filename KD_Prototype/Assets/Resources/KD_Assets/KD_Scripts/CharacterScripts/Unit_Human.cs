@@ -8,6 +8,8 @@ public class Unit_Human : Unit_Master
 {
     public int InteractionRange = 2;
 
+    LayerMask rayMask = ~(1 << 14);
+
     [Header("Human Fields")]
 
     #region Unit Stats
@@ -45,7 +47,7 @@ public class Unit_Human : Unit_Master
 
         RaycastHit hit;
 
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, InteractionRange))
+        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, InteractionRange, rayMask))
         {
             objectToActivate = hit.collider.GetComponent<IInteractable>();
 

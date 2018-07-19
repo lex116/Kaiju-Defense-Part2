@@ -23,18 +23,18 @@ public class RoundManager : MonoBehaviour
     [SerializeField]
     List<Image> ActionTray = new List<Image>();
 
-    enum Manager_States
-    {
-        State_StartingBattle,
-        State_StartingRound,
-        State_MapOverview,
-        State_InMenu,
-        State_UnitActing,
-        State_EndingRound,
-        State_EndingBattle
-    }
+    //enum Manager_States
+    //{
+    //    State_StartingBattle,
+    //    State_StartingRound,
+    //    State_MapOverview,
+    //    State_InMenu,
+    //    State_UnitActing,
+    //    State_EndingRound,
+    //    State_EndingBattle
+    //}
 
-    Manager_States CurrentState;
+    //Manager_States CurrentState;
 
     public GameObject InitiativeOrderBar;
 
@@ -794,10 +794,13 @@ public class RoundManager : MonoBehaviour
 
     public void DeactivateSuppressors()
     {
-        //foreach (Unit_Master x in initiativeOrder)
-        //{
-        //    x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Waiting;
-        //}
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x.Current_Unit_Suppression_State != Unit_Master.Unit_Suppression_States.State_Waiting)
+            {
+                x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_WaitingToSuppress;
+            }
+        }
     }
 
     public void DeactivateMapCam()
@@ -897,6 +900,7 @@ public class RoundManager : MonoBehaviour
     //Any clean up, then call RoundProcess
     void EndRound()
     {
+        DestroyAllDeployables();
         ResetUnitStateMachines();
         StartRound();
     }
@@ -962,4 +966,23 @@ public class RoundManager : MonoBehaviour
     {
         EndOfBattleCanvas.SetActive(true);
     }
-}
+
+    public void RechargeAllSuppressors(Unit_Master actingUnit)
+    {
+        foreach (Unit_Master x in initiativeOrder)
+        {
+            if (x != actingUnit)
+                x.RechargeSuppression();
+        }
+    }
+
+    public void DestroyAllDeployables()
+    {
+        Deployable_Object_Master[] deployablesToDelete = FindObjectsOfType<Deployable_Object_Master>();
+
+        foreach (Deployable_Object_Master x in deployablesToDelete)
+        {
+            Destroy(x.gameObject);
+        }
+    }
+}   

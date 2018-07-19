@@ -22,7 +22,7 @@ public class Character_SER_Emir : Character_Master
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Human_Shotgun;
-        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedEquipment = Equipment.Equipment_Human_SmokeGrenadePack;
         selectedArmor = Armors.Armor_Human_BodyArmor;
 
         unitType = UnitTypes.Human;

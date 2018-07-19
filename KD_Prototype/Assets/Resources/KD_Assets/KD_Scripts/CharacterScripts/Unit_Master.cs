@@ -59,6 +59,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     internal bool cantBeControlled;
 
+    public int SuppressionCharges = 0;
+
+    internal int StartingSuppressionCharges = 4;
+
+    internal int RechargeSuppressionRate = 2;
+
     #region Unit Components
     public enum Characters
     {
@@ -105,7 +111,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     internal bool hasNoMovementRemaining;
     internal bool isDead;
     #endregion
-
+    
     #region Unit Input
     [Header("Input")]
 
@@ -322,6 +328,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
             ResetAP();
             CalculateWeaponStats();
             CalculateCarryWeight();
+            SuppressionCharges = StartingSuppressionCharges;
 
             roundManager.Player_HUD_Basic.SetActive(true);
             roundManager.Player_HUD_Moving.SetActive(true);
@@ -413,6 +420,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         {
             AP = AP - Selected_Unit_Action.Action_AP_Cost;
             Selected_Unit_Action.Action_Effect(this);
+            roundManager.RechargeAllSuppressors(this);
         }
         else
             roundManager.AddNotificationToFeed("Can't use that action!");
@@ -525,11 +533,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
                 }
             }
 
-            if (shooting.isFiring == false && losCheck == true && !isOnSuppressionCooldown)
+            if (shooting.isFiring == false && losCheck == true && !isOnSuppressionCooldown && SuppressionCharges > 0)
             {
                 isOnSuppressionCooldown = true;
                 shooting.TestShooting(SuppressShotAccMod);
                 StartCoroutine(SuppressionCooldownRoutine());
+                SuppressionCharges = SuppressionCharges - 1;
             }
         }
     }
@@ -614,6 +623,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
             characterSheet.UnitStat_Initiative = characterSheet.UnitStat_Reaction + characterSheet.initiativeRoll;
             characterSheet.initiativeRolled = true;
         }
+    }
+
+    public void RechargeSuppression()
+    {
+        SuppressionCharges = SuppressionCharges + RechargeSuppressionRate;
     }
     #endregion
 }

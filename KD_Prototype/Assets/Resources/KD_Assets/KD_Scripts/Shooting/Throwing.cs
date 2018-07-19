@@ -154,7 +154,8 @@ public class Throwing : MonoBehaviour
                 ToggleTargettingGraphics(true);
 
                 TargetTransform = hit.point;
-                AreaOfEffectGuide.transform.localScale = new Vector3(unit.equippedEquipment.EffectRadius * 2, unit.equippedEquipment.EffectRadius * 2, unit.equippedEquipment.EffectRadius * 2);
+                //AreaOfEffectGuide.transform.localScale = new Vector3(unit.equippedEquipment.EffectRadius * 2, unit.equippedEquipment.EffectRadius * 2, unit.equippedEquipment.EffectRadius * 2);
+                AreaOfEffectGuide.transform.localScale = new Vector3(unit.equippedEquipment.EffectRadius, unit.equippedEquipment.EffectRadius, unit.equippedEquipment.EffectRadius);
                 AreaOfEffectGuide.transform.position = hit.point;
             }
         }

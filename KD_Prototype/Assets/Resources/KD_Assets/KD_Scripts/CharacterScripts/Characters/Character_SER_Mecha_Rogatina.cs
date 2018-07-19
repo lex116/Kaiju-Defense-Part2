@@ -21,7 +21,7 @@ public class Character_SER_Mecha_Rogatina : Character_Master
         //startingMovementPoints;
 
         selectedWeapon = Weapons.Weapon_Vehicle_Cannon;
-        selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
+        selectedEquipment = Equipment.Equipment_Human_SmokeGrenadePack;
         selectedArmor = Armors.Armor_Vehicle_HeavyPlating;
 
         unitType = UnitTypes.Mecha;

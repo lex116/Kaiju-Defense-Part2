@@ -12,7 +12,7 @@ public class Deployable_Behavior_FragGrenadePack : Deployable_Behavior_Master
         {
             RaycastHit hit;
 
-            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, DeployableOwner.equippedEquipment.EffectRadius))
+            if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, DeployableOwner.equippedEquipment.EffectRadius / 2))
             {
                 if (hit.collider == x)
                 {

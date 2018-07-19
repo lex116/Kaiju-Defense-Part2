@@ -7,7 +7,7 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 {
     public string HardPointName;
     internal int StartingHitPoints;
-    internal int HitPoints;
+    public int HitPoints;
     public Unit_VehicleMaster OwnerVehicle;
     internal Armor_Master AttachedArmor;
 
