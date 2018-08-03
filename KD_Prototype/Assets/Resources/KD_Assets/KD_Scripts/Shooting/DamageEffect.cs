@@ -8,8 +8,8 @@ public class DamageEffect : MonoBehaviour
 
 	void Start ()
     {
-        Invoke("DestroyTracer", 0.5f);
-        Invoke("DestroySelf", 4f);
+        Invoke("DestroyTracer", 0.15f);
+        Invoke("DestroySelf", 2f);
 	}
 	
     void DestroySelf()

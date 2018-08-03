@@ -6,6 +6,11 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    public Camera GunCamera;
+    public GameObject HeldWeapon_GunPrefab;
+    public GameObject HeldWeapon_GunTip;
+    public GameObject HeldWeapon_Pos;
+
     internal Throwing throwing;
     internal int throwRange = 75;
 
@@ -61,9 +66,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public int SuppressionCharges = 0;
 
-    internal int StartingSuppressionCharges = 4;
+    internal int StartingSuppressionCharges = 3;
 
-    internal int RechargeSuppressionRate = 2;
+    internal int RechargeSuppressionRate = 3;
 
     #region Unit Components
     public enum Characters
@@ -171,6 +176,20 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         if (equippedWeapon == null)
             equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
+
+        //if (HeldWeapon_GunPrefab != null)
+        //{
+        //    Destroy(HeldWeapon_GunPrefab);
+        //}
+
+        HeldWeapon_GunPrefab = Instantiate(equippedWeapon.WeaponModel, HeldWeapon_Pos.transform);
+
+        //HeldWeapon_GunPrefab.transform.localPosition = HeldWeapon_Pos.transform.position;
+        //HeldWeapon_GunPrefab.transform.rotation = HeldWeapon_Pos.transform.rotation;
+
+        HeldWeapon_GunTip = HeldWeapon_GunPrefab.GetComponentInChildren<GunTip_Script>().gameObject;
+
+        //Do all the shit in my notes fuck
 
         if (equippedEquipment == null)
             equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
@@ -284,6 +303,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void ResetCameraFOV()
     {
         playerCamera.fieldOfView = DefaultFOV;
+        GunCamera.fieldOfView = DefaultFOV;
     }
     public void ScaleCameraFOV()
     {
@@ -291,6 +311,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         TargetFOV = (int)(DefaultFOV - (DefaultFOV * ((Calculated_WeaponAccuracy * CurrentShotAccuracyModifier) / 100)));
 
         playerCamera.fieldOfView = TargetFOV;
+        GunCamera.fieldOfView = TargetFOV;
         //playerCamera.fieldOfView = (int)(DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)));
 
         //TargetFOV = DefaultFOV;

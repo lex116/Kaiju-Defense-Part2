@@ -168,7 +168,8 @@ public class Shooting : MonoBehaviour
 
             DamageEffect dmgCubeScript = dmgCube.GetComponent<DamageEffect>();
 
-            dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+            //dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+            dmgCubeScript.SetOrigin(unit.HeldWeapon_GunTip.transform.position);
         }
     }
 

@@ -27,11 +27,11 @@ public class Action_Basic_Interaction : Action_Master
 
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Selected Interaction!");
+        //Action_Owner.roundManager.AddNotificationToFeed("Selected Interaction!");
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Deselected Interaction");
+        //Action_Owner.roundManager.AddNotificationToFeed("Deselected Interaction");
     }
 }

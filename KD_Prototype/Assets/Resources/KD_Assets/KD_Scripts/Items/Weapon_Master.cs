@@ -17,4 +17,6 @@ public class Weapon_Master : Item_Master
     public FireModes fireMode;
 
     public Sprite Reticle_Sprite;
+
+    public GameObject WeaponModel;
 }

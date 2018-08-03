@@ -43,7 +43,7 @@ public class Action_Basic_AimedShot : Action_Master
 
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Selected Aimed Shot!");
+        //Action_Owner.roundManager.AddNotificationToFeed("Selected Aimed Shot!");
         Action_Owner.CurrentShotAccuracyModifier = Action_Owner.AimedShotAccMod;
         Action_Owner.ScaleCameraFOV();
         Action_Owner.roundManager.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
@@ -52,7 +52,7 @@ public class Action_Basic_AimedShot : Action_Master
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     { 
-        Action_Owner.roundManager.AddNotificationToFeed("Deselected Aimed Shot!");
+        //Action_Owner.roundManager.AddNotificationToFeed("Deselected Aimed Shot!");
         Action_Owner.CurrentShotAccuracyModifier = 0;
         Action_Owner.ResetCameraFOV();
         Action_Owner.roundManager.Reticle.sprite = Action_Owner.Default_Reticle;

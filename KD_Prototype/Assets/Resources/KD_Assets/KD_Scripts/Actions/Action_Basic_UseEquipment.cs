@@ -54,7 +54,7 @@ public class Action_Basic_UseEquipment : Action_Master
 
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Selected Use Equipment!");
+        //Action_Owner.roundManager.AddNotificationToFeed("Selected Use Equipment!");
 
         if (Action_Owner.equippedEquipment.EquipmentType == Equipment_Master.EquipmentTypes.Deployable)
         {
@@ -67,7 +67,7 @@ public class Action_Basic_UseEquipment : Action_Master
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Deselected Use Equipment");
+        //Action_Owner.roundManager.AddNotificationToFeed("Deselected Use Equipment");
 
         if (Action_Owner.equippedEquipment.EquipmentType == Equipment_Master.EquipmentTypes.Deployable)
         {

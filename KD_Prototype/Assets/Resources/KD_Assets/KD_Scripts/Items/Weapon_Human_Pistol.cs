@@ -24,5 +24,6 @@ public class Weapon_Human_Pistol : Weapon_Master
         Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Pistol_Reload"));
 
         Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Pistol"));
+        WeaponModel = (Resources.Load<GameObject>("KD_Assets/KD_Prefabs/Weapon_Human_Pistol_Model"));
     }
 }

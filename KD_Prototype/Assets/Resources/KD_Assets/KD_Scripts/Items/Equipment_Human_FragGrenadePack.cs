@@ -8,7 +8,7 @@ public class Equipment_Human_FragGrenadePack : Equipment_Master
     {
         Item_Name = "Frag Grenades";
         EffectRadius = 10;
-        Damage = 10;
+        Damage = 15;
         damageType = DamageTypes.Explosive;
         EquipmentType = EquipmentTypes.Deployable;
     }

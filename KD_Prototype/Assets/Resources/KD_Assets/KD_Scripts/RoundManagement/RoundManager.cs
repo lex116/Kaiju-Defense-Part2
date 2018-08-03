@@ -910,12 +910,15 @@ public class RoundManager : MonoBehaviour
     {
         foreach (Unit_Master x in initiativeOrder)
         {
-            x.StopAllCoroutines();
-            x.isOnSuppressionCooldown = false;
-            x.shooting.StopAllCoroutines();
-            x.shooting.isFiring = false;
-            x.Current_Unit_State = Unit_Master.Unit_States.State_Waiting;
-            x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Waiting;
+            if (x != null)
+            {
+                x.StopAllCoroutines();
+                x.isOnSuppressionCooldown = false;
+                x.shooting.StopAllCoroutines();
+                x.shooting.isFiring = false;
+                x.Current_Unit_State = Unit_Master.Unit_States.State_Waiting;
+                x.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_Waiting;
+            }
         }
     }
 
