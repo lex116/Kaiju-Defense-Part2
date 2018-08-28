@@ -6,6 +6,7 @@ public class Armor_Human_Uniform : Armor_Master
 { 
     public Armor_Human_Uniform()
     {
+        Item_Name = "Uniform";
         Weight = 1;
 
         DamageResistance[(int)DamageTypes.Radiation] = 0;

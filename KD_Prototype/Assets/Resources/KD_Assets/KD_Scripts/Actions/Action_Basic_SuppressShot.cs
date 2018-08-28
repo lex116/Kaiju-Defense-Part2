@@ -7,7 +7,8 @@ public class Action_Basic_SuppressShot : Action_Master
     Action_Basic_SuppressShot()
     {
         Action_Name = "Suppress Shot";
-        Action_AP_Cost = 2;
+        //Action_AP_Cost = 2;
+        Action_AP_Cost = 1;
     }
 
     public override void SetUp()

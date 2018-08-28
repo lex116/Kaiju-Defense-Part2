@@ -6,6 +6,7 @@ public class Armor_Human_BodyArmor : Armor_Master
 {
     Armor_Human_BodyArmor()
     {
+        Item_Name = "Body Armor";
         Weight = 2;
 
         DamageResistance[(int)DamageTypes.Radiation] = 0;

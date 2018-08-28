@@ -7,6 +7,47 @@ using UnityEngine.UI;
 
 public class RoundManager : MonoBehaviour
 {
+    //[SerializeField]
+    //List<Vector3> SpawnPositions_SER = new List<Vector3>();
+
+    //[SerializeField]
+    //List<Character_Master> CharacterList_SER = new List<Character_Master>();
+
+    //[SerializeField]
+    //List<Vector3> SpawnPositions_Enemy = new List<Vector3>();
+
+    public bool Inventory_isDispayed;
+    public GameObject Inventory_Panel;
+    #region Inventory Fields
+    public Text Inventory_Character_Name;
+    public Text Inventory_Character_Faction;
+    public Text Inventory_Character_HP;
+    public Text Inventory_Character_Nerve;
+    public Text Inventory_Character_Reaction;
+    public Text Inventory_Character_Accuracy;
+    public Text Inventory_Character_Willpower;
+    public Text Inventory_Character_Fitness;
+
+    public Text Inventory_Weapon_Name;
+    public Text Inventory_Weapon_Damage;
+    public Text Inventory_Weapon_Range;
+
+    public Text Inventory_Equipment_Name;
+    public Text Inventory_Equipment_Damage;
+    public Text Inventory_Equipment_EffectRadius;
+
+    public Text Inventory_Armor_Name;
+    public Text Inventory_Armor_RadiationResist;
+    public Text Inventory_Armor_ExplosiveResist;
+    public Text Inventory_Armor_ShredResist;
+    public Text Inventory_Armor_HeatResist;
+    public Text Inventory_Armor_ElectricResist;
+    public Text Inventory_Armor_BluntResist;
+    public Text Inventory_Armor_LightResist;
+    public Text Inventory_Armor_PunctureResist;
+    #endregion
+
+    public Text MoraleText;
     public GameObject EndOfBattleCanvas;
 
     public Image Reticle;
@@ -165,10 +206,10 @@ public class RoundManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false && ExitApplicationPanel.activeSelf == false)
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        //if (Input.GetMouseButton(0) && Cursor.lockState != CursorLockMode.Locked && isInMapMode == false && ExitApplicationPanel.activeSelf == false)
+        //{
+        //    Cursor.lockState = CursorLockMode.Locked;
+        //}
 
         if (SelectedUnit != null && isInMapMode == false)
         {
@@ -747,6 +788,7 @@ public class RoundManager : MonoBehaviour
         MapCamera.targetTexture = null;
 
         ClearInitiativeFeed();
+        CalculateMorale();
 
         StartCoroutine(WaitToSetMapHud());
     }
@@ -902,6 +944,7 @@ public class RoundManager : MonoBehaviour
     {
         DestroyAllDeployables();
         ResetUnitStateMachines();
+        ResetNotificationFeed();
         StartRound();
     }
     #endregion
@@ -927,10 +970,14 @@ public class RoundManager : MonoBehaviour
         if (ExitApplicationPanel.activeSelf)
         {
             ExitApplicationPanel.SetActive(false);
+            Cursor.lockState = CursorLockMode.Locked;
         }
 
         else
+        {
             ExitApplicationPanel.SetActive(true);
+            Cursor.lockState = CursorLockMode.Confined;
+        }
     }
 
     public void ExitApplication()
@@ -987,5 +1034,106 @@ public class RoundManager : MonoBehaviour
         {
             Destroy(x.gameObject);
         }
+    }
+
+    public void ResetNotificationFeed()
+    {
+        foreach (Text x in KillFeedBoxes)
+        {
+            x.text = "";
+        }
+    }
+
+    public void CalculateMorale()
+    {
+        float MaxMorale_SER = 0;
+        float CurrentMorale_SER = 0;
+        float MoralePercentage_SER = 0f;
+
+        float MaxMorale_Enemy = 0;
+        float CurrentMorale_Enemy = 0;
+        float MoralePercentage_Enemy = 0f;
+
+        foreach (var x in initiativeOrder)
+        {
+            if (x.isDead == false)
+            {
+                if (x.characterSheet.UnitStat_FactionTag == Character_Master.FactionTag.SER)
+                {
+                    MaxMorale_SER = x.characterSheet.UnitStat_StartingNerve + MaxMorale_SER;
+                    CurrentMorale_SER = x.characterSheet.UnitStat_Nerve + CurrentMorale_SER;
+
+                    MoralePercentage_SER = CurrentMorale_SER / MaxMorale_SER;
+                }
+
+                if (x.characterSheet.UnitStat_FactionTag != Character_Master.FactionTag.SER)
+                {
+                    MaxMorale_Enemy = x.characterSheet.UnitStat_StartingNerve + MaxMorale_Enemy;
+                    CurrentMorale_Enemy = x.characterSheet.UnitStat_Nerve + CurrentMorale_Enemy;
+
+                    MoralePercentage_Enemy = CurrentMorale_Enemy / MaxMorale_Enemy;
+                }
+            }
+        }
+
+        //Debug.Log("SER: " + MaxMorale_SER + " / " + CurrentMorale_SER);
+        //Debug.Log("Enemy: " + MaxMorale_Enemy + " / " + CurrentMorale_Enemy);
+        MoraleText.text = (int)(MoralePercentage_Enemy * 100) + " VS " + (int)(MoralePercentage_SER * 100);
+    }
+
+    public void SpawnUnits()
+    {
+
+    }
+
+    public void ToggleInventoryScreen()
+    {
+        if (Inventory_isDispayed == false)
+        {
+            FillInventoryScreen();
+            Inventory_isDispayed = true;
+            Inventory_Panel.SetActive(true);
+        }
+
+        else if (Inventory_isDispayed == true)
+        {
+            Inventory_isDispayed = false;
+            Inventory_Panel.SetActive(false);
+        }
+    }
+
+    public void FillInventoryScreen()
+    {
+        Inventory_Character_Name.text = "Name: " + SelectedUnit.characterSheet.UnitStat_Name;
+        Inventory_Character_Faction.text = "Faction: " + SelectedUnit.characterSheet.UnitStat_FactionTag.ToString();
+        Inventory_Character_HP.text = "HP: " + SelectedUnit.characterSheet.UnitStat_HitPoints.ToString();
+        Inventory_Character_Nerve.text = "Nerve: " + SelectedUnit.characterSheet.UnitStat_Nerve.ToString();
+        Inventory_Character_Reaction.text = "Reaction: " + SelectedUnit.characterSheet.UnitStat_Reaction.ToString();
+        Inventory_Character_Accuracy.text = "Accuracy: " + SelectedUnit.characterSheet.UnitStat_Accuracy.ToString();
+        Inventory_Character_Willpower.text = "Willpower: " + SelectedUnit.characterSheet.UnitStat_Willpower.ToString();
+        Inventory_Character_Fitness.text = "Fitness: " + SelectedUnit.characterSheet.UnitStat_Fitness.ToString();
+
+        Inventory_Weapon_Name.text = SelectedUnit.equippedWeapon.Item_Name;
+        Inventory_Weapon_Damage.text = 
+            (SelectedUnit.equippedWeapon.Damage * SelectedUnit.equippedWeapon.BurstCount * SelectedUnit.equippedWeapon.ShotCount) 
+            + " " + SelectedUnit.equippedWeapon.damageType.ToString() + " Dmg";
+        Inventory_Weapon_Range.text = "Range: " + SelectedUnit.equippedWeapon.Range.ToString();
+
+        Inventory_Equipment_Name.text = SelectedUnit.equippedEquipment.Item_Name;
+        Inventory_Equipment_Damage.text = 
+            SelectedUnit.equippedEquipment.Damage + " " + SelectedUnit.equippedEquipment.damageType.ToString() + " Dmg";
+        if (SelectedUnit.equippedEquipment.Damage == 0)
+            Inventory_Equipment_Damage.text = "-- Dmg";
+        Inventory_Equipment_EffectRadius.text = "Effect Range: " + SelectedUnit.equippedEquipment.EffectRadius.ToString();
+
+        Inventory_Armor_Name.text = SelectedUnit.equippedArmor.Item_Name;
+        Inventory_Armor_RadiationResist.text = "RAD: " + SelectedUnit.equippedArmor.DamageResistance[0].ToString();
+        Inventory_Armor_ExplosiveResist.text = "EXP: " + SelectedUnit.equippedArmor.DamageResistance[1].ToString();
+        Inventory_Armor_ShredResist.text = "SHRD: " + SelectedUnit.equippedArmor.DamageResistance[2].ToString();
+        Inventory_Armor_HeatResist.text = "HEAT: " + SelectedUnit.equippedArmor.DamageResistance[3].ToString();
+        Inventory_Armor_ElectricResist.text = "ELEC: " + SelectedUnit.equippedArmor.DamageResistance[4].ToString();
+        Inventory_Armor_BluntResist.text = "BLNT: " + SelectedUnit.equippedArmor.DamageResistance[5].ToString();
+        Inventory_Armor_LightResist.text = "LGHT: " + SelectedUnit.equippedArmor.DamageResistance[6].ToString();
+        Inventory_Armor_PunctureResist.text = "PNCT: " + SelectedUnit.equippedArmor.DamageResistance[7].ToString();
     }
 }   

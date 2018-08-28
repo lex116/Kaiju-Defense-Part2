@@ -53,6 +53,9 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         CurrentPilot_Character.UnitStat_HitPoints = CurrentPilot_Character.UnitStat_StartingHitPoints;
         CurrentPilot_Character.UnitStat_Nerve = CurrentPilot_Character.UnitStat_StartingNerve;
 
+        characterSheet.UnitStat_StartingNerve = CurrentPilot_Character.UnitStat_StartingNerve;
+        characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
+
         RollStartingPilotInitiative();
     }
 
@@ -66,6 +69,9 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         CurrentPilot_Equipment.Ammo = IncomingPilotEquipment.Ammo;
 
         characterSheet.UnitStat_FactionTag = CurrentPilot_Character.UnitStat_FactionTag;
+        characterSheet.UnitStat_StartingNerve = CurrentPilot_Character.UnitStat_StartingNerve;
+        characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
+
         cantBeControlled = false;
         roundManager.AssignTeamColors(this);
         playerCamera.gameObject.SetActive(true);
@@ -73,7 +79,12 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
     public void PilotDisembark()
     {
-        //roundManager.EndUnitTurn();
+        cantBeControlled = true;
+        characterSheet.UnitStat_FactionTag = Character_Master.FactionTag.Neutral;
+        roundManager.AssignTeamColors(this);
+        ToggleControl(false);
+
+        ///
 
         GameObject tempNewPilot = Instantiate(HumanPrefab, EjectPos.transform.position, EjectPos.transform.rotation);
         Unit_Human tempUnit_HumanScript = tempNewPilot.GetComponent<Unit_Human>();
@@ -95,22 +106,13 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         tempUnit_HumanScript.SetItems();
         tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
 
-        CalculateWeaponStats();
-
-        //roundManager.SelectedUnit = tempUnit_HumanScript;
         roundManager.AssignTeamColors(tempUnit_HumanScript);
+
+        ///
+
+        CalculateWeaponStats();
         CurrentPilot_Character = null;
-  
-        cantBeControlled = true;
-        characterSheet.UnitStat_FactionTag = Character_Master.FactionTag.Neutral;
-        roundManager.AssignTeamColors(this);
-        ToggleControl(false);
-
         CurrentPilot_Equipment = null;
-
-        //tempUnit_HumanScript.playerCamera.gameObject.SetActive(false);
-
-        //if (roundManager.SelectedUnit == this)
     }
 
     public override void Die(string Attacker)
@@ -161,34 +163,40 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
             if (change > 0)
             {
                 CurrentPilot_Character.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve + change;
+                characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
             }
 
             if (change < 0 && RollStatCheck(characterSheet.UnitStat_Willpower, 1f) == false)
             {
                 CurrentPilot_Character.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve + change;
+                characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
             }
 
             #region Results from change
             if (CurrentPilot_Character.UnitStat_Nerve < 25 && !CurrentPilot_Character.isPanicked)
             {
                 CurrentPilot_Character.isPanicked = true;
+                characterSheet.isPanicked = true;
                 roundManager.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Panicked!");
             }
 
             if (CurrentPilot_Character.UnitStat_Nerve > 25 && CurrentPilot_Character.isPanicked)
             {
                 CurrentPilot_Character.isPanicked = false;
+                characterSheet.isPanicked = false;
                 roundManager.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Recovered!");
             }
 
             if (CurrentPilot_Character.UnitStat_Nerve > CurrentPilot_Character.UnitStat_StartingNerve)
             {
                 CurrentPilot_Character.UnitStat_Nerve = CurrentPilot_Character.UnitStat_StartingNerve;
+                characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
             }
 
             if (CurrentPilot_Character.UnitStat_Nerve < 0)
             {
                 CurrentPilot_Character.UnitStat_Nerve = 0;
+                characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
             }
         }
         #endregion

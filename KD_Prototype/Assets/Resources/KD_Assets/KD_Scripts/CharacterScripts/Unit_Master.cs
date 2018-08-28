@@ -402,6 +402,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
         if (Input.GetKeyDown(KeyCode.M))
             roundManager.ToggleMiniMap();
 
+        if (Input.GetKeyDown(KeyCode.I))
+            roundManager.ToggleInventoryScreen();
+
         //if (Input.GetKeyDown(KeyCode.L))
         //{
         //    throwing.isTargetting = true;
@@ -467,6 +470,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
             if (DamageToTake > 0)
             {
+                //Test
+                if (characterSheet.isPanicked == false)
+                    DamageToTake = DamageToTake / 2;
+
+                if (DamageToTake < 1)
+                    DamageToTake = 1;
+
                 ChangeTeamNerve(-DamageToTake);
                 characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_HitPoints - DamageToTake;
             }

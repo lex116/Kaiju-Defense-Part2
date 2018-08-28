@@ -7,7 +7,8 @@ public class Equipment_Human_SmokeGrenadePack : Equipment_Master
     public Equipment_Human_SmokeGrenadePack()
     {
         Item_Name = "Smoke Grenades";
-        EffectRadius = 12;
+        //EffectRadius = 12;
+        EffectRadius = 25;
         EquipmentType = EquipmentTypes.Deployable;
     }
 

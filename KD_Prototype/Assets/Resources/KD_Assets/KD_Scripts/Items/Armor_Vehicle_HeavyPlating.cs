@@ -6,6 +6,7 @@ public class Armor_Vehicle_HeavyPlating : Armor_Master
 {
     Armor_Vehicle_HeavyPlating()
     {
+        Item_Name = "Heavy Plating";
         Weight = 15;
 
         DamageResistance[(int)DamageTypes.Radiation] = 2;

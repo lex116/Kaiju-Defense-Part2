@@ -6,6 +6,7 @@ public class Armor_Human_HeavyArmor : Armor_Master
 {
     Armor_Human_HeavyArmor()
     {
+        Item_Name = "Heavy Armor";
         Weight = 3;
 
         DamageResistance[(int)DamageTypes.Radiation] = 0;

@@ -26,7 +26,9 @@ public class Character_Master : ScriptableObject
     internal int UnitStat_Fitness;
     //public int UnitStat_Aptitude; ???
     //internal int UnitStat_VisualRange;
+    [SerializeField]
     internal int UnitStat_StartingNerve;
+    [SerializeField]
     internal int UnitStat_Nerve;
     internal bool isPanicked; 
 

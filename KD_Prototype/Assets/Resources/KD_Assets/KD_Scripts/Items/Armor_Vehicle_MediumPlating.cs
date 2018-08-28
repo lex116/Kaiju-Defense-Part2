@@ -6,6 +6,7 @@ public class Armor_Vehicle_MediumPlating : Armor_Master
 {
     Armor_Vehicle_MediumPlating()
     {
+        Item_Name = "Medium Plating";
         Weight = 10;
 
         DamageResistance[(int)DamageTypes.Radiation] = 1;

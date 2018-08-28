@@ -6,6 +6,7 @@ public class Armor_Vehicle_LightPlating : Armor_Master
 {
     Armor_Vehicle_LightPlating()
     {
+        Item_Name = "Light Plating";
         Weight = 7;
 
         DamageResistance[(int)DamageTypes.Radiation] = 1;
