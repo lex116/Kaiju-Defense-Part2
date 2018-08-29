@@ -22,8 +22,8 @@ public class Weapon_Human_MachineGun : Weapon_Master
 
     public override void SetUp()
     {
-        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
-        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_MachineGun_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_HeavyMachinGun_Reload"));
 
         Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_MachineGun"));
         WeaponModel = (Resources.Load<GameObject>("KD_Assets/KD_Prefabs/Weapon_Human_MachineGun_Model"));
