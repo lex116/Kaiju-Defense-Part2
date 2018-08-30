@@ -95,7 +95,6 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         tempUnit_HumanScript.equippedWeapon = null;
 
         tempUnit_HumanScript.characterSheet = Instantiate(CurrentPilot_Character) as Character_Master;
-        UnitIconName.text = characterSheet.UnitStat_Name;
 
         tempUnit_HumanScript.characterSheet.UnitStat_HitPoints = CurrentPilot_Character.UnitStat_HitPoints;
         tempUnit_HumanScript.characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
@@ -107,12 +106,14 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
 
         roundManager.AssignTeamColors(tempUnit_HumanScript);
+        tempUnit_HumanScript.UnitIconName.text = tempUnit_HumanScript.characterSheet.UnitStat_Name;
 
         ///
 
         CalculateWeaponStats();
         CurrentPilot_Character = null;
         CurrentPilot_Equipment = null;
+        UnitIconName.text = characterSheet.UnitStat_Name;
     }
 
     public override void Die(string Attacker)
