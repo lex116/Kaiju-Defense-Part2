@@ -21,8 +21,8 @@ public class Weapon_Vehicle_Cannon : Weapon_Master
 
     public override void SetUp()
     {
-        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Shot"));
-        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_Rifle_Reload"));
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Vehicle_Cannon_Shot"));
+        Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Vehicle_Cannon_Reload"));
 
         Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Cannon"));
         WeaponModel = (Resources.Load<GameObject>("KD_Assets/KD_Prefabs/Weapon_Human_AntiArmorRifle_Model"));
