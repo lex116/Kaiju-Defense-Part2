@@ -5,6 +5,14 @@ using UnityEngine;
 
 public class Unit_VehicleMaster : Unit_Master, IInteractable
 {
+    //temp 
+    float CriticalFailure_Chance = 100;
+    float CriticalFailure_EffectRadius = 30;
+    //int CriticalFailure_Damage = 30;
+    int CriticalFailure_Damage = 50;
+    Item_Master.DamageTypes CriticalFailure_DamageType = Item_Master.DamageTypes.Explosive;
+
+
     [SerializeField]
     internal Character_Master CurrentPilot_Character;
     internal Equipment_Master CurrentPilot_Equipment;
@@ -132,12 +140,19 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         //Destroy(KD_CC);
 
+        Sensor.DestroyHardPoint(Attacker);
+        PrimaryWeapon.DestroyHardPoint(Attacker);
+        SecondaryEquipment.DestroyHardPoint(Attacker);
+        Locomotion.DestroyHardPoint(Attacker);
+
         foreach (Transform x in transform)
         {
             x.gameObject.AddComponent<Rigidbody>();
         }
 
         roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
+
+        CriticalFailureCheck();
     }
 
     public void Activate(Unit_Human Activator)
@@ -275,5 +290,45 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         }
 
         CurrentPilot_Character.UnitStat_Initiative = CurrentPilot_Character.UnitStat_Reaction + CurrentPilot_Character.initiativeRoll;
+    }
+
+    public void CriticalFailureCheck()
+    {
+        int RollResult = 0;
+        RollResult = UnityEngine.Random.Range(0, 99);
+
+        if (RollResult < CriticalFailure_Chance)
+        {
+            CriticalFailure();
+        }
+    }
+
+    public void CriticalFailure()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, CriticalFailure_EffectRadius / 2);
+
+        foreach (Collider x in hitColliders)
+        {
+            //RaycastHit hit;
+
+            //if (Physics.Raycast(transform.position, (x.transform.position - transform.position).normalized, out hit, CriticalFailure_EffectRadius))
+            //{
+                //if (hit.collider == x)
+                //{ 
+                    IDamagable objectToBeDamaged;
+
+                    objectToBeDamaged = x.gameObject.GetComponent<IDamagable>();
+
+                    if (objectToBeDamaged != null)
+                    {
+                        objectToBeDamaged.TakeDamage(CriticalFailure_Damage, Item_Master.DamageTypes.Explosive, characterSheet.UnitStat_Name);
+                    }
+                //}
+            //}
+        }
+
+        Instantiate((Resources.Load<GameObject>("KD_Assets/KD_Prefabs/TempExplosion")), transform.position, transform.rotation);
+
+        roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " goes critical!");
     }
 }

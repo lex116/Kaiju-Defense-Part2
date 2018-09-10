@@ -338,6 +338,9 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public void ToggleControl(bool toggle)
     {
         playerCamera.gameObject.SetActive(toggle);
+        //temp
+        HeldWeapon_GunPrefab.gameObject.SetActive(toggle);
+
         CameraAudioListener.enabled = toggle;
         IsBeingControlled = toggle;
 

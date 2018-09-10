@@ -8,7 +8,7 @@ public class KD_CharacterController_Tank : KD_CharacterController
     public GameObject Barrel;
     public GameObject Body;
     internal int negativeBodyRotationModifier = 10;
-
+    internal float BodyRotationSpeed = 1.5f;
     internal int TankxRotMaxUp = -45;
     internal int TankxRotMinDown = 5;
 
@@ -38,7 +38,7 @@ public class KD_CharacterController_Tank : KD_CharacterController
     {
         float horizontal = Input.GetAxis("Horizontal");
 
-        float rotAmountY = horizontal * walkSpeed / negativeBodyRotationModifier;
+        float rotAmountY = horizontal * walkSpeed / negativeBodyRotationModifier * BodyRotationSpeed;
 
         Vector3 targetRotBody = Body.transform.rotation.eulerAngles;
 

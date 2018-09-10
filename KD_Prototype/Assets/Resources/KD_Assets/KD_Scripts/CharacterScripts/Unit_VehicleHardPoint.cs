@@ -50,7 +50,7 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
         }
     }
 
-    void DestroyHardPoint(string Attacker)
+    public void DestroyHardPoint(string Attacker)
     {
         isDestroyed = true;
 
@@ -58,5 +58,7 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 
         roundManager = FindObjectOfType<RoundManager>();
         roundManager.AddNotificationToFeed(Attacker + " destroyed " + HardPointName);
+
+        Instantiate((Resources.Load<GameObject>("KD_Assets/KD_Prefabs/TempExplosion")), transform.position, transform.rotation);
     }
 }

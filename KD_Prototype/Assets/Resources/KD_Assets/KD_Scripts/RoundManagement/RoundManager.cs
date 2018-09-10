@@ -16,6 +16,9 @@ public class RoundManager : MonoBehaviour
     //[SerializeField]
     //List<Vector3> SpawnPositions_Enemy = new List<Vector3>();
 
+    public Text DistanceToTargetText;
+    
+
     public bool Inventory_isDispayed;
     public GameObject Inventory_Panel;
     #region Inventory Fields
@@ -987,29 +990,29 @@ public class RoundManager : MonoBehaviour
 
     public void CheckWinCondition()
     {
-        int PlayerUnits = 0;
-        int EnemyUnits = 0;
+        //int PlayerUnits = 0;
+        //int EnemyUnits = 0;
 
-        foreach (Unit_Master x in initiativeOrder)
-        {
-            if (x.isDead == false)
-            {
-                if (x.characterSheet.UnitStat_FactionTag == Character_Master.FactionTag.SER)
-                {
-                    PlayerUnits++;
-                }
+        //foreach (Unit_Master x in initiativeOrder)
+        //{
+        //    if (x.isDead == false)
+        //    {
+        //        if (x.characterSheet.UnitStat_FactionTag == Character_Master.FactionTag.SER)
+        //        {
+        //            PlayerUnits++;
+        //        }
 
-                if (x.characterSheet.UnitStat_FactionTag != Character_Master.FactionTag.SER)
-                {
-                    EnemyUnits++;
-                }
-            }
-        }
+        //        if (x.characterSheet.UnitStat_FactionTag != Character_Master.FactionTag.SER)
+        //        {
+        //            EnemyUnits++;
+        //        }
+        //    }
+        //}
 
-        if (PlayerUnits == 0 || EnemyUnits == 0)
-        {
-            EndBattle();
-        }
+        //if (PlayerUnits == 0 || EnemyUnits == 0)
+        //{
+        //    EndBattle();
+        //}
     }
 
     public void EndBattle()
@@ -1078,7 +1081,8 @@ public class RoundManager : MonoBehaviour
 
         //Debug.Log("SER: " + MaxMorale_SER + " / " + CurrentMorale_SER);
         //Debug.Log("Enemy: " + MaxMorale_Enemy + " / " + CurrentMorale_Enemy);
-        MoraleText.text = (int)(MoralePercentage_Enemy * 100) + " VS " + (int)(MoralePercentage_SER * 100);
+        MoraleText.text = "SER:" + (int)(MoralePercentage_SER * 100) 
+            + " VS " + "Enemy:" + (int)(MoralePercentage_Enemy * 100);
     }
 
     public void SpawnUnits()
