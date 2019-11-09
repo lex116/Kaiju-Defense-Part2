@@ -20,7 +20,7 @@ public class Weapon_Vehicle_MachineGun : Weapon_Master
 
     public override void SetUp()
     {
-        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Human_MachineGun_Shot"));
+        Firing_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Vehicle_MachineGun_Shot"));
         Reload_Clip = (AudioClip)(Resources.Load("KD_SFX/Weapon_Vehicle_MachineGun_Reload"));
 
         Reticle_Sprite = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_MachineGun"));
