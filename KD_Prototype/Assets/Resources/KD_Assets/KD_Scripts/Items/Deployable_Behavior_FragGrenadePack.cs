@@ -28,9 +28,12 @@ public class Deployable_Behavior_FragGrenadePack : Deployable_Behavior_Master
             }
         }
 
-        RoundManager RM = FindObjectOfType<RoundManager>();
+        // THIS CURRENTLY DOES NOTHING
+        //RoundManager RM = FindObjectOfType<RoundManager>();
 
-        RM.AddNotificationToFeed("Frag Grenade Exploded");
+        //NOTICE
+        //THIS IS DISABLED
+        //RM.AddNotificationToFeed("Frag Grenade Exploded");
 
         Instantiate(DamageSphere, transform.position, transform.rotation);
 

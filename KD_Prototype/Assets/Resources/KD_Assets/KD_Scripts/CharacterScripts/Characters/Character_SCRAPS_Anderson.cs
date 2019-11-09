@@ -7,7 +7,7 @@ public class Character_SCRAPS_Anderson : Character_Master
     //SCRAP soldier
     Character_SCRAPS_Anderson()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Anderson";
         UnitStat_StartingHitPoints = 26;
         //UnitStat_StartingActionPoints;

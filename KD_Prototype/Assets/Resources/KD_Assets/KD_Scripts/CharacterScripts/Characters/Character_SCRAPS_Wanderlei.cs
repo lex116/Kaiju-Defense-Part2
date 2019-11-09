@@ -7,7 +7,7 @@ public class Character_SCRAPS_Wanderlei : Character_Master
     //SCRAP pilot
     Character_SCRAPS_Wanderlei()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Wanderlei";
         UnitStat_StartingHitPoints = 21;
         //UnitStat_StartingActionPoints;

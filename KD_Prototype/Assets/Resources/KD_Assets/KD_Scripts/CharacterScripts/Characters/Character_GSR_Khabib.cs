@@ -7,7 +7,7 @@ public class Character_GSR_Khabib : Character_Master
     //GSR Pilot 2
     Character_GSR_Khabib()
     {
-        UnitStat_FactionTag = FactionTag.GSR;
+        UnitStat_FactionTag = KD_Global.FactionTag.GSR;
         UnitStat_Name = "Khabib";
         UnitStat_StartingHitPoints = 25;
         //UnitStat_StartingActionPoints;

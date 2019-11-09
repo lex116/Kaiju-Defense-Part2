@@ -7,7 +7,7 @@ public class Character_SER_Szymon : Character_Master
     //Rookie Special Character
     Character_SER_Szymon()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Szymon";
         UnitStat_StartingHitPoints = 24;
         //UnitStat_StartingActionPoints;

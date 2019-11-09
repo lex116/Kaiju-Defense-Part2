@@ -7,7 +7,7 @@ public class Character_SCRAPS_Arlo : Character_Master
     //SCRAP pilot
     Character_SCRAPS_Arlo()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Arlo";
         UnitStat_StartingHitPoints = 25;
         //UnitStat_StartingActionPoints;

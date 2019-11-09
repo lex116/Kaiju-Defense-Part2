@@ -7,7 +7,7 @@ public class Character_SER_Kostas : Character_Master
     //Ser Pilot
     Character_SER_Kostas()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Kostas";
         UnitStat_StartingHitPoints = 23;
         //UnitStat_StartingActionPoints;

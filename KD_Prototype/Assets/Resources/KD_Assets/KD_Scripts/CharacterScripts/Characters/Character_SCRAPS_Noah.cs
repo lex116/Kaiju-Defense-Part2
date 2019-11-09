@@ -7,7 +7,7 @@ public class Character_SCRAPS_Noah : Character_Master
     //SCRAP soldier
     Character_SCRAPS_Noah()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Noah";
         UnitStat_StartingHitPoints = 26;
         //UnitStat_StartingActionPoints;

@@ -6,14 +6,7 @@ using UnityEngine.UI;
 
 public class Character_Master : ScriptableObject
 {
-    internal enum FactionTag
-    {
-        SER,
-        SCRAPS,
-        GSR,
-        Neutral
-    }
-    internal FactionTag UnitStat_FactionTag;
+    internal KD_Global.FactionTag UnitStat_FactionTag;
 
     internal string UnitStat_Name;
     internal int UnitStat_StartingHitPoints;

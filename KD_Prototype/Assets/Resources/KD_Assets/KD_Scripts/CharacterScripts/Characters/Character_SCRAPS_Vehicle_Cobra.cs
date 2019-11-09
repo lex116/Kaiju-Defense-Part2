@@ -6,7 +6,7 @@ public class Character_SCRAPS_Vehicle_Cobra : Character_Master
 {
     Character_SCRAPS_Vehicle_Cobra()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Cobra";
         UnitStat_StartingHitPoints = 140;
         //UnitStat_StartingActionPoints;

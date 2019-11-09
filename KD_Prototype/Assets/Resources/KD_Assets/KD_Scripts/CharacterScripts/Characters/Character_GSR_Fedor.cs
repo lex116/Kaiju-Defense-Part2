@@ -7,7 +7,7 @@ public class Character_GSR_Fedor : Character_Master
     //GSR Pilot 1
     Character_GSR_Fedor()
     {
-        UnitStat_FactionTag = FactionTag.GSR;
+        UnitStat_FactionTag = KD_Global.FactionTag.GSR;
         UnitStat_Name = "Fedor";
         UnitStat_StartingHitPoints = 25;
         //UnitStat_StartingActionPoints;

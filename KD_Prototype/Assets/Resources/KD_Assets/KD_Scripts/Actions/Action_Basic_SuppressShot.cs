@@ -18,9 +18,12 @@ public class Action_Basic_SuppressShot : Action_Master
 
     public override void Action_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.roundManager.AddNotificationToFeed("Suppressing " + Action_Owner.suppressionTarget.characterSheet.UnitStat_Name + "!");
-        Action_Owner.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_WaitingToSuppress;
-        Action_Owner.ToggleMovingState();
+        Action_Owner.manager_HUD.AddNotificationToFeed("Suppressing " + Action_Owner.suppressionTarget.characterSheet.UnitStat_Name + "!");
+        Action_Owner.Current_Unit_Suppression_State = Unit_Master.Unit_Suppression_States.State_PreparingToSuppress;
+
+        // NOTICE
+        // this is curretly disabled
+        //Action_Owner.ToggleMovingState();
     }
 
     public override bool CheckRequirements(Unit_Master Action_Owner)
@@ -36,7 +39,8 @@ public class Action_Basic_SuppressShot : Action_Master
                 return false;
         }
 
-        Action_Owner.PaintTarget();
+        //NOTICE THIS BREAKS SUPPRESSION
+        //Action_Owner.PaintTarget();
 
         if (Action_Owner.suppressionTarget == null)
             return false;
@@ -46,19 +50,21 @@ public class Action_Basic_SuppressShot : Action_Master
 
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
+        // NOTICE
         //Action_Owner.roundManager.AddNotificationToFeed("Selected Suppress Shot!");
         Action_Owner.CurrentShotAccuracyModifier = Action_Owner.SuppressShotAccMod;
         Action_Owner.ScaleCameraFOV();
-        Action_Owner.roundManager.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
-        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(true);
+        Action_Owner.manager_HUD.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
+        Action_Owner.manager_HUD.Player_HUD_Shooting.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     {
+        // NOTICE
         //Action_Owner.roundManager.AddNotificationToFeed("Deselected Suppress Shot!");
         Action_Owner.CurrentShotAccuracyModifier = 0;
         Action_Owner.ResetCameraFOV();
-        Action_Owner.roundManager.Reticle.sprite = Action_Owner.Default_Reticle;
-        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(false);
+        Action_Owner.manager_HUD.Reticle.sprite = Action_Owner.Default_Reticle;
+        Action_Owner.manager_HUD.Player_HUD_Shooting.SetActive(false);
     }
 }

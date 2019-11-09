@@ -36,8 +36,8 @@ public class Action_Basic_QuickShot : Action_Master
         //Action_Owner.roundManager.AddNotificationToFeed("Selected Quick Shot!");
         Action_Owner.CurrentShotAccuracyModifier = Action_Owner.QuickShotAccMod;
         Action_Owner.ScaleCameraFOV();
-        Action_Owner.roundManager.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
-        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(true);
+        Action_Owner.manager_HUD.Reticle.sprite = Action_Owner.equippedWeapon.Reticle_Sprite;
+        Action_Owner.manager_HUD.Player_HUD_Shooting.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
@@ -45,7 +45,7 @@ public class Action_Basic_QuickShot : Action_Master
         //Action_Owner.roundManager.AddNotificationToFeed("Deselected Quick Shot");
         Action_Owner.CurrentShotAccuracyModifier = 0;
         Action_Owner.ResetCameraFOV();
-        Action_Owner.roundManager.Reticle.sprite = Action_Owner.Default_Reticle;
-        Action_Owner.roundManager.Player_HUD_Shooting.SetActive(false);
+        Action_Owner.manager_HUD.Reticle.sprite = Action_Owner.Default_Reticle;
+        Action_Owner.manager_HUD.Player_HUD_Shooting.SetActive(false);
     }
 }

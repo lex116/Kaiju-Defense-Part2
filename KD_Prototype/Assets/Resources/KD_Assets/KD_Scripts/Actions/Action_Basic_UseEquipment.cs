@@ -62,7 +62,7 @@ public class Action_Basic_UseEquipment : Action_Master
             Action_Owner.throwing.ToggleTargettingGraphics(true);
         }
 
-        Action_Owner.roundManager.Player_HUD_Equipment.SetActive(true);
+        Action_Owner.manager_HUD.Player_HUD_Equipment.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
@@ -75,6 +75,6 @@ public class Action_Basic_UseEquipment : Action_Master
             Action_Owner.throwing.ToggleTargettingGraphics(false);
         }
 
-        Action_Owner.roundManager.Player_HUD_Equipment.SetActive(false);
+        Action_Owner.manager_HUD.Player_HUD_Equipment.SetActive(false);
     }
 }

@@ -6,20 +6,41 @@ using UnityEngine.UI;
 
 public class Unit_Master : MonoBehaviour, IDamagable
 {
+    #region components
     public Camera GunCamera;
     public GameObject HeldWeapon_GunPrefab;
     public GameObject HeldWeapon_GunTip;
     public GameObject HeldWeapon_Pos;
+    internal AudioListener CameraAudioListener;
+    internal bool cantBeControlled;
+    #endregion
 
+    #region stats
+    internal int StartingSuppressionCharges = 3;
+    internal int RechargeSuppressionRate = 3;
+    public int SuppressionCharges = 0;
+    #endregion
+
+    #region throwing & shooting
+    internal float CurrentShotAccuracyModifier = 0;
     internal Throwing throwing;
     internal int throwRange = 75;
+    internal float QuickShotAccMod = 0.75f;
+    internal float AimedShotAccMod = 1f;
+    internal float SuppressShotAccMod = 0.40f;
+    internal float PanicAccMod = 0.75f;
+    #endregion
 
+    #region prep for extraction
     internal Sprite Default_Reticle;
+    #endregion
 
-    internal float CurrentShotAccuracyModifier = 0;
-
+    #region actions
     public Action_Master[] Unit_Actions = new Action_Master[10];
     public Action_Master Selected_Unit_Action;
+    internal int AP = 2;
+    internal int Starting_Ap = 2;
+    #endregion
 
     internal enum Unit_States
     {
@@ -33,7 +54,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
         State_Ejecting,
         State_ActivatingAbility
     }
-
     [SerializeField]
     internal Unit_States Current_Unit_State;
 
@@ -41,64 +61,29 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         State_Waiting,
         State_WaitingToSuppress,
+        State_PreparingToSuppress,
         State_Suppressing
     }
-
     [SerializeField]
     internal Unit_Suppression_States Current_Unit_Suppression_State;
 
-    internal int AP = 2;
-    internal int Starting_Ap = 2;
-
-    internal AudioListener CameraAudioListener;
-
+    #region map components
     public GameObject NonRotatingCanvas;
     public Text UnitIconName;
     internal Quaternion NonRotatingCanvasDefault = new Quaternion(0, 0, 0, 0);
-
-    internal float QuickShotAccMod = 0.75f;
-    internal float AimedShotAccMod = 1f;
-    internal float SuppressShotAccMod = 0.40f;
-
-    internal float PanicAccMod = 0.75f;
-
-    internal bool cantBeControlled;
-
-    public int SuppressionCharges = 0;
-
-    internal int StartingSuppressionCharges = 3;
-
-    internal int RechargeSuppressionRate = 3;
+    #endregion
 
     #region Unit Components
-    public enum Characters
-    {
-        Character_SER_Samuel,
-        Character_SER_Szymon,
-        Character_SER_Emir,
-        Character_SER_Kostas,
-        Character_SER_Thomas,
-        Character_SER_Mecha_Xiphos,
-        Character_SER_Mecha_Rogatina,
-        Character_SCRAPS_Wanderlei,
-        Character_SCRAPS_Anderson,
-        Character_SCRAPS_Arlo,
-        Character_SCRAPS_Mason,
-        Character_SCRAPS_Noah,
-        Character_SCRAPS_Mecha_Flyboy,
-        Character_SCRAPS_Vehicle_Cobra,
-        Character_GSR_Fedor,
-        Character_GSR_Khabib,
-        Character_GSR_Rustam
-    }
-    public Characters selectedCharacter;
+  
     public Character_Master characterSheet;
     [Header("Components")]
-    internal KD_CharacterController KD_CC;
+    //internal KD_CharacterController KD_CC;
     public Shooting shooting;
     public Camera playerCamera;
-    internal RoundManager roundManager;
-    public Transform dectionNodes;
+    //internal RoundManager roundManager;
+    internal Manager_HUD manager_HUD;
+
+    public Transform detectionNodes;
     public MeshRenderer[] UnitSkins;
     public Image MapIconHighlight;
     public Image UnitIcon;
@@ -121,13 +106,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     [Header("Input")]
 
     internal bool IsBeingControlled;
-    //This doesnt do anything but it could if we change the way targetting works
-    internal Unit_Master TargetUnit;
-    public GameObject AimingNode;
+
+    public GameObject aimingNode;
     internal Unit_Master suppressionTarget;
 
-    internal Unit_Master LookedAtUnit_Master;
-    internal Unit_VehicleHardPoint LookedAtUnit_VehicleHardPoint;
+
 
     internal float DefaultFOV = 60;
     internal float TargetFOV;
@@ -142,16 +125,15 @@ public class Unit_Master : MonoBehaviour, IDamagable
     public Weapon_Master equippedWeapon;
     public Equipment_Master equippedEquipment;
     public Armor_Master equippedArmor;
-
     #endregion
 
     //
 
     #region Set Up
-    public virtual void Awake()
+    public virtual void Setup(Character_Master infantry, Character_Master vehicle)
     {
         SetUpComponents();
-        SetCharacter();
+        SetCharacter(infantry);
         SetItems();
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
@@ -165,31 +147,23 @@ public class Unit_Master : MonoBehaviour, IDamagable
         SetActions();
 
         Default_Reticle = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Default"));
-        roundManager.Reticle.sprite = Default_Reticle;
+        manager_HUD.Reticle.sprite = Default_Reticle;
+
+        KD_Global.AssignTeamColorsToUnit(this);
     }
 
-    public void SetCharacter()
+    public void SetCharacter(Character_Master selectedCharacter)
     {
         characterSheet = (Character_Master)ScriptableObject.CreateInstance((selectedCharacter).ToString());
     }
+
     public virtual void SetItems()
     {
         if (equippedWeapon == null)
             equippedWeapon = (Weapon_Master)ScriptableObject.CreateInstance(characterSheet.selectedWeapon.ToString());
 
-        //if (HeldWeapon_GunPrefab != null)
-        //{
-        //    Destroy(HeldWeapon_GunPrefab);
-        //}
-
         HeldWeapon_GunPrefab = Instantiate(equippedWeapon.WeaponModel, HeldWeapon_Pos.transform);
-
-        //HeldWeapon_GunPrefab.transform.localPosition = HeldWeapon_Pos.transform.position;
-        //HeldWeapon_GunPrefab.transform.rotation = HeldWeapon_Pos.transform.rotation;
-
         HeldWeapon_GunTip = HeldWeapon_GunPrefab.GetComponentInChildren<GunTip_Script>().gameObject;
-
-        //Do all the shit in my notes fuck
 
         if (equippedEquipment == null)
             equippedEquipment = (Equipment_Master)ScriptableObject.CreateInstance(characterSheet.selectedEquipment.ToString());
@@ -201,12 +175,14 @@ public class Unit_Master : MonoBehaviour, IDamagable
         equippedEquipment.DeployableThrowForce = DeployableThrowForce;
         equippedEquipment.DeployableOwner = this;
     }
+
     public void SetUpComponents()
     {
-        KD_CC = GetComponent<KD_CharacterController>();
-        shooting = GetComponent<Shooting>();
+        //KD_CC = GetComponent<KD_CharacterController>();
+        aimingNode = GetComponentInChildren<AimingNode>().gameObject;
+        shooting = GetComponent<Shooting>(); 
         shooting.unit = this;
-        roundManager = FindObjectOfType<RoundManager>();
+        manager_HUD = FindObjectOfType<Manager_HUD>();
         CameraAudioListener = playerCamera.GetComponent<AudioListener>();
         CameraAudioListener.enabled = false;
         movementPosition = this.transform.position;
@@ -251,54 +227,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region Updates
-    public void FixedUpdate()
-    {
-        KD_CC.GroundCheckUpdate();
-
-        if (Current_Unit_State != Unit_States.State_Dying)
-            SpendMovement();
-
-        if (Current_Unit_State == Unit_States.State_Moving &&
-            movementPointsRemaining > 0)
-            KD_CC.MovementUpdate();
-
-        if (Current_Unit_State == Unit_States.State_Moving ||
-            Current_Unit_State == Unit_States.State_PreparingToAct)
-            KD_CC.LookUpdate();
-
-        if (Current_Unit_Suppression_State == Unit_Suppression_States.State_Suppressing)
-            SuppressionUpdate();
-    }
-
-    public void Update()
-    {
-        if (IsBeingControlled && !isDead)
-        {
-            PlayerInput();
-            LookAtTarget();
-        }
-
-        OrientUnitIcon();
-    }
+   
     #endregion
 
     #region HUD or UI
-    public virtual void LookAtTarget()
-    {
-        LookedAtUnit_Master = null;
-        LookedAtUnit_VehicleHardPoint = null;
-
-        RaycastHit hit;
-
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, equippedWeapon.Range))
-        {
-            if (hit.collider.gameObject.name != null)
-            {
-                LookedAtUnit_Master = hit.collider.gameObject.GetComponent<Unit_Master>();
-                LookedAtUnit_VehicleHardPoint = hit.collider.gameObject.GetComponent<Unit_VehicleHardPoint>();
-            }
-        }
-    }
+    
 
     public void ResetCameraFOV()
     {
@@ -328,139 +261,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         #endregion
     }
 
-    public void OrientUnitIcon()
-    {
-        NonRotatingCanvas.transform.rotation = Quaternion.identity;
-    }
+    //come back to this later it isnt very relevant during this period of great mourning
+    //public void OrientUnitIcon()
+    //{
+    //    NonRotatingCanvas.transform.rotation = Quaternion.identity;
+    //}
     #endregion
 
-    #region Player Input
-    public void ToggleControl(bool toggle)
-    {
-        playerCamera.gameObject.SetActive(toggle);
-        //temp
-        HeldWeapon_GunPrefab.gameObject.SetActive(toggle);
-
-        CameraAudioListener.enabled = toggle;
-        IsBeingControlled = toggle;
-
-        if (toggle == true)
-        {
-            Current_Unit_State = Unit_States.State_Moving;
-            Current_Unit_Suppression_State = Unit_Suppression_States.State_Waiting;
-            Selected_Unit_Action = Unit_Actions[1];
-            ResetAP();
-            CalculateWeaponStats();
-            CalculateCarryWeight();
-            SuppressionCharges = StartingSuppressionCharges;
-
-            roundManager.Player_HUD_Basic.SetActive(true);
-            roundManager.Player_HUD_Moving.SetActive(true);
-            roundManager.Player_HUD_Action.SetActive(false);
-            roundManager.Player_HUD_Shooting.SetActive(false);
-            roundManager.Player_HUD_Equipment.SetActive(false);
-        }
-
-        if (toggle == false)
-        {
-            Current_Unit_State = Unit_States.State_Waiting;
-        }
-    }
-    public virtual void PlayerInput()
-    {
-        //Switch between moving and firing mode
-        if (Input.GetKeyDown(KeyCode.Mouse1))
-            ToggleMovingState();
-
-        if (Current_Unit_State == Unit_States.State_PreparingToAct)
-        {
-            if (Input.GetKeyDown(KeyCode.Mouse0))
-                UseSelectedAction();
-
-            if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
-                ChangeAction(1);
-
-            if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
-                ChangeAction(2);
-
-            if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
-                ChangeAction(3);
-
-            if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
-                ChangeAction(4);
-
-            if (Input.GetKeyDown(KeyCode.Alpha5) || Input.GetKeyDown(KeyCode.Keypad5))
-                ChangeAction(5);
-
-            if (Input.GetKeyDown(KeyCode.Alpha6) || Input.GetKeyDown(KeyCode.Keypad6))
-                ChangeAction(6);
-        }
-
-        if (Input.GetKeyDown(KeyCode.B) && KD_CC.characterController.isGrounded && Current_Unit_State == Unit_States.State_Moving)
-        {
-            roundManager.HUD_Player_ConfirmText.SetActive(true);
-            roundManager.EndUnitTurn();
-        }
-
-        if (Input.GetKeyDown(KeyCode.M))
-            roundManager.ToggleMiniMap();
-
-        if (Input.GetKeyDown(KeyCode.I))
-            roundManager.ToggleInventoryScreen();
-
-        //if (Input.GetKeyDown(KeyCode.L))
-        //{
-        //    throwing.isTargetting = true;
-        //}
-
-        //if (Input.GetKeyDown(KeyCode.E))
-        //    Interaction();
-    }
-    public virtual void Interaction()
-    {
-        //
-    }
-
-    public virtual void ToggleMovingState()
-    {
-        if (Current_Unit_State == Unit_States.State_Moving)
-        {
-            roundManager.Player_HUD_Moving.SetActive(false);
-            roundManager.Player_HUD_Action.SetActive(true);
-            Current_Unit_State = Unit_States.State_PreparingToAct;
-            ChangeAction(1);
-
-        }
-
-        else if (Current_Unit_State == Unit_States.State_PreparingToAct)
-        {
-            roundManager.Player_HUD_Moving.SetActive(true);
-            roundManager.Player_HUD_Action.SetActive(false);
-            Current_Unit_State = Unit_States.State_Moving;
-            ChangeAction(1);
-        }
-    }
-
-    public void UseSelectedAction()
-    {
-        if (AP >= Selected_Unit_Action.Action_AP_Cost && Selected_Unit_Action.CheckRequirements(this) == true)
-        {
-            AP = AP - Selected_Unit_Action.Action_AP_Cost;
-            Selected_Unit_Action.Action_Effect(this);
-            roundManager.RechargeAllSuppressors(this);
-        }
-        else
-            roundManager.AddNotificationToFeed("Can't use that action!");
-    }
-    public void ChangeAction(int Selection)
-    {
-        if (Selected_Unit_Action != null)
-            Selected_Unit_Action.Deselection_Effect(this);
-
-        Selected_Unit_Action = Unit_Actions[Selection];
-        Selected_Unit_Action.Selection_Effect(this);
-    }
-    #endregion
 
     #region Combat Methods
     public void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
@@ -492,28 +299,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         }
     }
 
-    //Select the target to suppress
-    public void PaintTarget()
-    {
-        suppressionTarget = null;
 
-        Unit_Master possibleSuppressionTarget = null;
-
-        if (LookedAtUnit_Master != null)
-            possibleSuppressionTarget = LookedAtUnit_Master;
-
-        if (LookedAtUnit_VehicleHardPoint != null)
-            possibleSuppressionTarget = LookedAtUnit_VehicleHardPoint.GetComponentInParent<Unit_Master>();
-
-        if (possibleSuppressionTarget != null)
-        {
-            if (possibleSuppressionTarget.characterSheet.UnitStat_Initiative < characterSheet.UnitStat_Initiative)
-                suppressionTarget = possibleSuppressionTarget;
-
-            else
-                roundManager.AddNotificationToFeed("Can't suppress " + possibleSuppressionTarget.characterSheet.UnitStat_Name);
-        }
-    }
 
     public virtual void TrackSuppressTarget()
     {
@@ -527,13 +313,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
         transform.rotation = Quaternion.Euler(bodyEulerAngles);
 
         //Rotate the camera to face the target
-        AimingNode.transform.LookAt(suppressionTarget.transform);
+        aimingNode.transform.LookAt(suppressionTarget.transform);
 
-        Vector3 camEulerAngles = AimingNode.transform.rotation.eulerAngles;
+        Vector3 camEulerAngles = aimingNode.transform.rotation.eulerAngles;
         bodyEulerAngles.y = 0;
         bodyEulerAngles.z = 0;
 
-        AimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
+        aimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
     }
 
     public virtual void SuppressionUpdate()
@@ -544,13 +330,13 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
             bool losCheck = false;
 
-            foreach (Transform x in suppressionTarget.dectionNodes)
+            foreach (Transform x in suppressionTarget.detectionNodes)
             {
                 if (losCheck == false)
                 {
                     RaycastHit hit;
 
-                    if (Physics.Raycast(AimingNode.transform.position, x.position - AimingNode.transform.position, out hit, equippedWeapon.Range))
+                    if (Physics.Raycast(aimingNode.transform.position, x.position - aimingNode.transform.position, out hit, equippedWeapon.Range))
                     {
                         if (suppressionTarget == hit.collider.GetComponent<Unit_Master>())
                         {
@@ -583,21 +369,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         isOnSuppressionCooldown = false;
     }
 
-    public void SpendMovement()
-    {
-        if (KD_CC.characterController.isGrounded)
-        {
-            movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.x - movementPosition.x);
-            movementPointsRemaining = movementPointsRemaining - Mathf.Abs(this.transform.position.z - movementPosition.z);
-        }
-
-        movementPosition = this.transform.position;
-
-        if (movementPointsRemaining <= 0)
-        {
-            movementPointsRemaining = 0;
-        }
-    }
+    
 
     public void ResetMovement()
     {
@@ -663,5 +435,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         SuppressionCharges = SuppressionCharges + RechargeSuppressionRate;
     }
+
+
     #endregion
 }

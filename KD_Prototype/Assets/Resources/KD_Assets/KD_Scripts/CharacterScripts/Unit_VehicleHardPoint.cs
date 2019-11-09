@@ -56,8 +56,9 @@ public class Unit_VehicleHardPoint : MonoBehaviour, IDamagable
 
         OwnerVehicle.ChangeTeamNerve(-15);
 
-        roundManager = FindObjectOfType<RoundManager>();
-        roundManager.AddNotificationToFeed(Attacker + " destroyed " + HardPointName);
+        //NOTICE
+        //roundManager = FindObjectOfType<RoundManager>();
+        //roundManager.AddNotificationToFeed(Attacker + " destroyed " + HardPointName);
 
         Instantiate((Resources.Load<GameObject>("KD_Assets/KD_Prefabs/TempExplosion")), transform.position, transform.rotation);
     }

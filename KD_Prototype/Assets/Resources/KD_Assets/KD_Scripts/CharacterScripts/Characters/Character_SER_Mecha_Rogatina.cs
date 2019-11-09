@@ -6,7 +6,7 @@ public class Character_SER_Mecha_Rogatina : Character_Master
 { 
     Character_SER_Mecha_Rogatina()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Rogatina";
         UnitStat_StartingHitPoints = 200;
         //UnitStat_StartingActionPoints;

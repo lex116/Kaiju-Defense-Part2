@@ -7,7 +7,7 @@ public class Character_SCRAPS_Mason : Character_Master
     //SCRAP soldier
     Character_SCRAPS_Mason()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Mason";
         UnitStat_StartingHitPoints = 29;
         //UnitStat_StartingActionPoints;

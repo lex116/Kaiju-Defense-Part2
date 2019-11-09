@@ -6,7 +6,7 @@ public class Character_SCRAPS_Mecha_Flyboy : Character_Master
 {
     Character_SCRAPS_Mecha_Flyboy()
     {
-        UnitStat_FactionTag = FactionTag.SCRAPS;
+        UnitStat_FactionTag = KD_Global.FactionTag.SCRAPS;
         UnitStat_Name = "Flyboy";
         UnitStat_StartingHitPoints = 180;
         //UnitStat_StartingActionPoints;

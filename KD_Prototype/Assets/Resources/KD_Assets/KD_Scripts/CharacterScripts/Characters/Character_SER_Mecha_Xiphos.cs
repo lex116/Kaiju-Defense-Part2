@@ -6,7 +6,7 @@ public class Character_SER_Mecha_Xiphos : Character_Master
 {
     Character_SER_Mecha_Xiphos()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Xiphos";
         UnitStat_StartingHitPoints = 140;
         //UnitStat_StartingActionPoints;

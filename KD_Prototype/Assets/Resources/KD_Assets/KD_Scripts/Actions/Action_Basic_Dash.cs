@@ -19,7 +19,10 @@ public class Action_Basic_Dash : Action_Master
     {
         Action_Owner.ResetMovement();
         Action_Owner.CalculateCarryWeight();
-        Action_Owner.ToggleMovingState();
+            
+          
+        // NOTICE
+        //Action_Owner.ToggleMovingState();
     }
 
     public override bool CheckRequirements(Unit_Master Action_Owner)
@@ -41,12 +44,12 @@ public class Action_Basic_Dash : Action_Master
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
         //Action_Owner.roundManager.AddNotificationToFeed("Selected Dash!");
-        Action_Owner.roundManager.Player_HUD_Moving.SetActive(true);
+        Action_Owner.manager_HUD.Player_HUD_Moving.SetActive(true);
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     {
         //Action_Owner.roundManager.AddNotificationToFeed("Deselected Dash!");
-        Action_Owner.roundManager.Player_HUD_Moving.SetActive(false);
+        Action_Owner.manager_HUD.Player_HUD_Moving.SetActive(false);
     }
 }

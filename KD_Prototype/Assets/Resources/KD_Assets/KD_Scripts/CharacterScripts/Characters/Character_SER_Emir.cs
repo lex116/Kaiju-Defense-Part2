@@ -7,7 +7,7 @@ public class Character_SER_Emir : Character_Master
     //Soldier Character
     Character_SER_Emir()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Emir";
         UnitStat_StartingHitPoints = 28;
         //UnitStat_StartingActionPoints;

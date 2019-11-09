@@ -17,7 +17,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
     internal Character_Master CurrentPilot_Character;
     internal Equipment_Master CurrentPilot_Equipment;
 
-    public Characters StartingPilot;
+    public Character_Master StartingPilot;
     public GameObject HumanPrefab;
     public Transform EjectPos;
 
@@ -34,10 +34,10 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         }
     }
 
-    public override void Awake()
+    public override void Setup(Character_Master infantry, Character_Master vehicle)
     {
         cantBeControlled = true;
-        SetCharacter();
+        SetCharacter(vehicle);
         SetItems();
         SetUpComponents();
         InstancePilot();
@@ -49,7 +49,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         SetActions();
 
         Default_Reticle = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Default"));
-        roundManager.Reticle.sprite = Default_Reticle;
+        manager_HUD.Reticle.sprite = Default_Reticle;
     }
 
     public void InstancePilot()
@@ -81,16 +81,18 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         characterSheet.UnitStat_Nerve = CurrentPilot_Character.UnitStat_Nerve;
 
         cantBeControlled = false;
-        roundManager.AssignTeamColors(this);
+        KD_Global.AssignTeamColorsToUnit(this);
         playerCamera.gameObject.SetActive(true);
     }
 
     public void PilotDisembark()
     {
         cantBeControlled = true;
-        characterSheet.UnitStat_FactionTag = Character_Master.FactionTag.Neutral;
-        roundManager.AssignTeamColors(this);
-        ToggleControl(false);
+        characterSheet.UnitStat_FactionTag = KD_Global.FactionTag.Neutral;
+        KD_Global.AssignTeamColorsToUnit(this);
+
+        //change this to have the toggle control back but also not be fucked
+        //ToggleControl(false);
 
         ///
 
@@ -110,12 +112,11 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         tempUnit_HumanScript.characterSheet.initiativeRolled = true;
         tempUnit_HumanScript.characterSheet.UnitStat_Initiative = CurrentPilot_Character.UnitStat_Initiative;
 
-        tempUnit_HumanScript.SetItems();
-        tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
-
-        roundManager.AssignTeamColors(tempUnit_HumanScript);
+        KD_Global.AssignTeamColorsToUnit(tempUnit_HumanScript);
         tempUnit_HumanScript.UnitIconName.text = tempUnit_HumanScript.characterSheet.UnitStat_Name;
 
+        tempUnit_HumanScript.SetItems();
+        tempUnit_HumanScript.equippedEquipment.Ammo = CurrentPilot_Equipment.Ammo;
         ///
 
         CalculateWeaponStats();
@@ -150,7 +151,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
             x.gameObject.AddComponent<Rigidbody>();
         }
 
-        roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
+        manager_HUD.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
 
         CriticalFailureCheck();
     }
@@ -162,15 +163,18 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
             Activator.cantBeControlled = true;
             PilotEmbark(Activator.characterSheet, Activator.equippedEquipment);
             Destroy(Activator.gameObject);
-            roundManager.EndUnitTurn();
+
+            // change this to the gamestate manager later 
+            //roundManager.EndUnitTurn();
         }
     }
 
-    public override void Interaction()
-    {
-        PilotDisembark();
-        roundManager.EndUnitTurn();
-    }
+    // reference the overlord for how completely fucked this is
+    //public override void Interaction()
+    //{
+    //    PilotDisembark();
+    //    roundManager.EndUnitTurn();
+    //}
 
     public override void ChangeNerve(int change)
     {
@@ -193,14 +197,14 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
             {
                 CurrentPilot_Character.isPanicked = true;
                 characterSheet.isPanicked = true;
-                roundManager.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Panicked!");
+                manager_HUD.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Panicked!");
             }
 
             if (CurrentPilot_Character.UnitStat_Nerve > 25 && CurrentPilot_Character.isPanicked)
             {
                 CurrentPilot_Character.isPanicked = false;
                 characterSheet.isPanicked = false;
-                roundManager.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Recovered!");
+                manager_HUD.AddNotificationToFeed(CurrentPilot_Character.UnitStat_Name + " has Recovered!");
             }
 
             if (CurrentPilot_Character.UnitStat_Nerve > CurrentPilot_Character.UnitStat_StartingNerve)
@@ -329,6 +333,6 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
 
         Instantiate((Resources.Load<GameObject>("KD_Assets/KD_Prefabs/TempExplosion")), transform.position, transform.rotation);
 
-        roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " goes critical!");
+        manager_HUD.AddNotificationToFeed(characterSheet.UnitStat_Name + " goes critical!");
     }
 }

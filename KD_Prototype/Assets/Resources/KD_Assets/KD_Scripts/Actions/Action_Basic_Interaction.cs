@@ -17,7 +17,9 @@ public class Action_Basic_Interaction : Action_Master
 
     public override void Action_Effect(Unit_Master Action_Owner)
     {
-        Action_Owner.Interaction();
+        //NOTICE
+        //this currently does nothing
+        //Action_Owner.Interaction();
     }
 
     public override bool CheckRequirements(Unit_Master Action_Owner)
@@ -27,11 +29,13 @@ public class Action_Basic_Interaction : Action_Master
 
     public override void Selection_Effect(Unit_Master Action_Owner)
     {
+        //NOTICE
         //Action_Owner.roundManager.AddNotificationToFeed("Selected Interaction!");
     }
 
     public override void Deselection_Effect(Unit_Master Action_Owner)
     {
+        //NOTICE
         //Action_Owner.roundManager.AddNotificationToFeed("Deselected Interaction");
     }
 }

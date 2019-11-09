@@ -145,7 +145,7 @@ public class Throwing : MonoBehaviour
 
         ToggleTargettingGraphics(false);
 
-        if (Physics.Raycast(unit.AimingNode.transform.position, unit.AimingNode.transform.forward, out hit, unit.throwRange))
+        if (Physics.Raycast(unit.aimingNode.transform.position, unit.aimingNode.transform.forward, out hit, unit.throwRange))
         {
             if (hit.collider.gameObject != null)
             {

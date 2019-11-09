@@ -17,30 +17,30 @@ public class Unit_Tank : Unit_VehicleMaster
         Turret.transform.rotation = Quaternion.Euler(turretEulerAngles);
 
         //Rotate the camera to face the target
-        AimingNode.transform.LookAt(suppressionTarget.transform);
+        aimingNode.transform.LookAt(suppressionTarget.transform);
 
-        Vector3 camEulerAngles = AimingNode.transform.rotation.eulerAngles;
+        Vector3 camEulerAngles = aimingNode.transform.rotation.eulerAngles;
         camEulerAngles.y = turretEulerAngles.y;
         camEulerAngles.z = 0;
 
-        AimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
+        aimingNode.transform.rotation = Quaternion.Euler(camEulerAngles);
     }
 
-    public override void LookAtTarget()
-    {
-        LookedAtUnit_Master = null;
-        LookedAtUnit_VehicleHardPoint = null;
+    //public override void LookAtTarget()
+    //{
+    //    LookedAtUnit_Master = null;
+    //    LookedAtUnit_VehicleHardPoint = null;
 
-        RaycastHit hit;
+    //    RaycastHit hit;
 
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, equippedWeapon.Range))
-        {
-            if (hit.collider.gameObject.name != null)
-            {
-                LookedAtUnit_Master = hit.collider.gameObject.GetComponent<Unit_Master>();
-                LookedAtUnit_VehicleHardPoint = hit.collider.gameObject.GetComponent<Unit_VehicleHardPoint>();
-            }
-        }
-    }
+    //    if (Physics.Raycast(aimingNode.transform.position, aimingNode.transform.forward, out hit, equippedWeapon.Range))
+    //    {
+    //        if (hit.collider.gameObject.name != null)
+    //        {
+    //            LookedAtUnit_Master = hit.collider.gameObject.GetComponent<Unit_Master>();
+    //            LookedAtUnit_VehicleHardPoint = hit.collider.gameObject.GetComponent<Unit_VehicleHardPoint>();
+    //        }
+    //    }
+    //}
 }
 

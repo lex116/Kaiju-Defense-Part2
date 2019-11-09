@@ -8,9 +8,9 @@ public class Deployable_Behavior_SmokeGrenadePack : Deployable_Behavior_Master
 
     public override void Detonate()
     {
-        RoundManager RM = FindObjectOfType<RoundManager>();
-
-        RM.AddNotificationToFeed("Smoke Grenade Exploded");
+        //NOTICE
+        //RoundManager RM = FindObjectOfType<RoundManager>();
+        //RM.AddNotificationToFeed("Smoke Grenade Exploded");
 
         GameObject tempSmokeCloud = Instantiate(SmokeCloud, transform.position, transform.rotation);
 

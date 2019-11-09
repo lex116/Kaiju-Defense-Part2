@@ -7,7 +7,7 @@ public class Shooting : MonoBehaviour
 {
     Weapon_Master currentWeapon = null;
 
-    public Unit_Master unit;
+    public Unit_Master unit; 
 
     public int ShotsFired = 0;
     public int BurstsFired = 0;
@@ -16,13 +16,14 @@ public class Shooting : MonoBehaviour
 
     public GameObject DamageCube;
     public GameObject DamageSphere;
+    public GameObject MissShotEffect;
 
     internal AudioSource audioSource;
     float audioSource_Pitch_Min = 0.75f;
     float audioSource_Pitch_Max = 1.25f;
 
     LayerMask rayMask = ~((1 << 14) | (1 << 2));
-
+ 
     public void Start()
     {
         audioSource = this.gameObject.GetComponent<AudioSource>();
@@ -52,14 +53,14 @@ public class Shooting : MonoBehaviour
         float randomYVector = UnityEngine.Random.Range((1f - Accuracy_Translated), ((1f - Accuracy_Translated) * -1));
         float randomZVector = UnityEngine.Random.Range((1f - Accuracy_Translated), ((1f - Accuracy_Translated) * -1));
 
-        return unit.AimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
+        return unit.aimingNode.transform.forward + new Vector3(randomXVector, randomYVector, randomZVector);
     }
 
     public void TestShooting(float accMod)
     {
-        RoundManager RM = FindObjectOfType<RoundManager>();
-
-        RM.AddNotificationToFeed(unit.characterSheet.UnitStat_Name + " takes a shot!");
+        //NOTICE
+        //RoundManager RM = FindObjectOfType<RoundManager>();
+        //RM.AddNotificationToFeed(unit.characterSheet.UnitStat_Name + " takes a shot!");
 
         currentWeapon = unit.equippedWeapon;
 
@@ -96,6 +97,8 @@ public class Shooting : MonoBehaviour
                 {
                     #region Shooting Code Block
 
+                    objectToBeDamaged = null;
+
                     DirectionToFire = CalculateAccuracy(AccMod);
 
                     RaycastHit objectToBeHit;
@@ -104,7 +107,7 @@ public class Shooting : MonoBehaviour
                         PlayClip_FiringSound();
 
                     #region Firing the weapon
-                    if (Physics.Raycast(unit.AimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range, rayMask))
+                    if (Physics.Raycast(unit.aimingNode.transform.position, DirectionToFire, out objectToBeHit, unit.equippedWeapon.Range, rayMask))
                     {
                         if (unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SingleShot || unit.equippedWeapon.fireMode == Weapon_Master.FireModes.SpreadShot)
                         {
@@ -115,6 +118,16 @@ public class Shooting : MonoBehaviour
                         {
                             AoeEffect(objectToBeDamaged, objectToBeHit);
                         }
+                    }
+
+                    else 
+                    {
+                        Vector3 MissLocation = this.transform.position + (DirectionToFire * currentWeapon.Range);
+                        GameObject missEffect = Instantiate(MissShotEffect, MissLocation, new Quaternion(0, 0, 0, 0));
+
+                        MissEffectScript missEffectScript = missEffect.GetComponent<MissEffectScript>();
+
+                        missEffectScript.SetOrigin(unit.HeldWeapon_GunTip.transform.position);
                     }
                     #endregion
 
@@ -141,14 +154,16 @@ public class Shooting : MonoBehaviour
 
         PlayClip_ReloadSound();
 
-        if (unit.Current_Unit_Suppression_State == Unit_Master.Unit_Suppression_States.State_Waiting)
+        if (unit.Current_Unit_Suppression_State == Unit_Master.Unit_Suppression_States.State_Waiting ||
+            unit.Current_Unit_Suppression_State == Unit_Master.Unit_Suppression_States.State_PreparingToSuppress)
         {
             unit.Current_Unit_State = Unit_Master.Unit_States.State_PreparingToAct;
 
             if (unit.AP == 0)
             {
-                unit.ToggleMovingState();
-                unit.roundManager.Reticle.sprite = unit.Default_Reticle;
+                //NOTICE THIS BREAKS EVERYTHING
+                //unit.ToggleMovingState();
+                unit.manager_HUD.Reticle.sprite = unit.Default_Reticle;
             }
         }
     }
@@ -211,7 +226,7 @@ public class Shooting : MonoBehaviour
 
         DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
 
-        dmgCubeScript.SetOrigin(unit.AimingNode.transform.position);
+        dmgCubeScript.SetOrigin(unit.aimingNode.transform.position);
     }
 
     public void PlayClip_FiringSound()

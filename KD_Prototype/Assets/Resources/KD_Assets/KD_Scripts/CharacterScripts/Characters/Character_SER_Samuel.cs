@@ -7,7 +7,7 @@ public class Character_SER_Samuel : Character_Master
     //Vetern Special Character
     Character_SER_Samuel()
     {
-        UnitStat_FactionTag = FactionTag.SER;
+        UnitStat_FactionTag = KD_Global.FactionTag.SER;
         UnitStat_Name = "Samuel";
         UnitStat_StartingHitPoints = 29;
         //UnitStat_StartingActionPoints;

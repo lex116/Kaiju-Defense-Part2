@@ -6,9 +6,7 @@ using UnityEngine.UI;
 
 public class Unit_Human : Unit_Master
 {
-    public int InteractionRange = 2;
 
-    LayerMask rayMask = ~(1 << 14);
 
     [Header("Human Fields")]
 
@@ -37,31 +35,11 @@ public class Unit_Human : Unit_Master
 
         this.transform.localScale = new Vector3(1f, 0.25f, 1f);
 
-        roundManager.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
+        manager_HUD.AddNotificationToFeed(Attacker + " killed " + characterSheet.UnitStat_Name);
     }
     #endregion
 
-    public override void Interaction()
-    {
-        IInteractable objectToActivate = null;
 
-        RaycastHit hit;
-
-        if (Physics.Raycast(AimingNode.transform.position, AimingNode.transform.forward, out hit, InteractionRange, rayMask))
-        {
-            objectToActivate = hit.collider.GetComponent<IInteractable>();
-
-            if (objectToActivate == null)
-            {
-                objectToActivate = hit.collider.GetComponentInParent<IInteractable>();
-            }
-
-            if (objectToActivate != null)
-            {
-                objectToActivate.Activate(this);
-            }
-        }
-    }
 
     public override void CalculateWeaponStats()
     {
@@ -89,13 +67,13 @@ public class Unit_Human : Unit_Master
         if (characterSheet.UnitStat_Nerve < 25 && !characterSheet.isPanicked)
         {
             characterSheet.isPanicked = true;
-            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Panicked!");
+            manager_HUD.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Panicked!");
         }
 
         if (characterSheet.UnitStat_Nerve > 25 && characterSheet.isPanicked)
         {
             characterSheet.isPanicked = false;
-            roundManager.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Recovered!");
+            manager_HUD.AddNotificationToFeed(characterSheet.UnitStat_Name + " has Recovered!");
         }
 
         if (characterSheet.UnitStat_Nerve > characterSheet.UnitStat_StartingNerve)

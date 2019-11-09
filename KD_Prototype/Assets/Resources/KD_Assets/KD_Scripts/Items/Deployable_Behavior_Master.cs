@@ -43,7 +43,8 @@ public class Deployable_Behavior_Master : MonoBehaviour
 
             if (DeployableOwner.AP == 0)
             {
-                DeployableOwner.ToggleMovingState();
+                //NOTICE
+                //DeployableOwner.ToggleMovingState();
             }
         }
 
