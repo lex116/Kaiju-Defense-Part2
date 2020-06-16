@@ -17,7 +17,7 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
     internal Character_Master CurrentPilot_Character;
     internal Equipment_Master CurrentPilot_Equipment;
 
-    public Character_Master StartingPilot;
+    //public Character_Master StartingPilot;
     public GameObject HumanPrefab;
     public Transform EjectPos;
 
@@ -34,13 +34,13 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         }
     }
 
-    public override void Setup(Character_Master infantry, Character_Master vehicle)
+    public override void Setup(KD_Global.Characters infantry, KD_Global.Characters vehicle)
     {
         cantBeControlled = true;
         SetCharacter(vehicle);
         SetItems();
         SetUpComponents();
-        InstancePilot();
+        InstancePilot(infantry);
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         CalculateWeaponStats();
         SetHardPoints();
@@ -52,9 +52,11 @@ public class Unit_VehicleMaster : Unit_Master, IInteractable
         manager_HUD.Reticle.sprite = Default_Reticle;
     }
 
-    public void InstancePilot()
+    public void InstancePilot(KD_Global.Characters infantry)
     {
-        Character_Master initialPilot = (Character_Master)ScriptableObject.CreateInstance((StartingPilot).ToString());
+        Character_Master initialPilot =
+            (Character_Master)ScriptableObject.CreateInstance(KD_Global.filePath_Characters + infantry.ToString());
+        //= (Character_Master)ScriptableObject.CreateInstance((StartingPilot).ToString());
 
         PilotEmbark(initialPilot, (Equipment_Master)ScriptableObject.CreateInstance((initialPilot.selectedEquipment).ToString()));
 

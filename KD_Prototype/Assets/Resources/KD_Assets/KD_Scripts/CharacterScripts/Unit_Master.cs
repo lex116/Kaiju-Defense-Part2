@@ -7,12 +7,13 @@ using UnityEngine.UI;
 public class Unit_Master : MonoBehaviour, IDamagable
 {
     #region components
-    public Camera GunCamera;
+    public Camera gunCamera;
     public GameObject HeldWeapon_GunPrefab;
     public GameObject HeldWeapon_GunTip;
     public GameObject HeldWeapon_Pos;
     internal AudioListener CameraAudioListener;
     internal bool cantBeControlled;
+    public GameObject body;
     #endregion
 
     #region stats
@@ -22,6 +23,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region throwing & shooting
+    [SerializeField]
     internal float CurrentShotAccuracyModifier = 0;
     internal Throwing throwing;
     internal int throwRange = 75;
@@ -36,6 +38,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #endregion
 
     #region actions
+    [HideInInspector]
     public Action_Master[] Unit_Actions = new Action_Master[10];
     public Action_Master Selected_Unit_Action;
     internal int AP = 2;
@@ -67,14 +70,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     [SerializeField]
     internal Unit_Suppression_States Current_Unit_Suppression_State;
 
-    #region map components
-    public GameObject NonRotatingCanvas;
-    public Text UnitIconName;
-    internal Quaternion NonRotatingCanvasDefault = new Quaternion(0, 0, 0, 0);
-    #endregion
-
     #region Unit Components
-  
     public Character_Master characterSheet;
     [Header("Components")]
     //internal KD_CharacterController KD_CC;
@@ -85,12 +81,19 @@ public class Unit_Master : MonoBehaviour, IDamagable
 
     public Transform detectionNodes;
     public MeshRenderer[] UnitSkins;
+    public Transform DeployableSpawnLocation;
+    internal int DeployableThrowForce = 1500;
+
+
+    #region map components
+    public GameObject NonRotatingCanvas;
+    public Text UnitIconName;
+    internal Quaternion NonRotatingCanvasDefault = new Quaternion(0, 0, 0, 0);
+    #endregion
     public Image MapIconHighlight;
     public Image UnitIcon;
     Quaternion UnitIconOrientation = new Quaternion(90, 0, 0, 0);
-    public Transform DeployableSpawnLocation;
-    internal int DeployableThrowForce = 1500;
-    #endregion
+     #endregion
     
     #region Unit Stats
     [Header("Stats")]
@@ -105,7 +108,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     #region Unit Input
     [Header("Input")]
 
-    internal bool IsBeingControlled;
+    public bool IsBeingControlled;
 
     public GameObject aimingNode;
     internal Unit_Master suppressionTarget;
@@ -130,7 +133,8 @@ public class Unit_Master : MonoBehaviour, IDamagable
     //
 
     #region Set Up
-    public virtual void Setup(Character_Master infantry, Character_Master vehicle)
+    //run all the first time set up functions, reset or default things to new
+    public virtual void Setup(KD_Global.Characters infantry, KD_Global.Characters vehicle)
     {
         SetUpComponents();
         SetCharacter(infantry);
@@ -138,25 +142,45 @@ public class Unit_Master : MonoBehaviour, IDamagable
         characterSheet.UnitStat_HitPoints = characterSheet.UnitStat_StartingHitPoints;
         characterSheet.UnitStat_Nerve = characterSheet.UnitStat_StartingNerve;
         CalculateWeaponStats();
-        UnitIconName.text = characterSheet.UnitStat_Name;
+        //UnitIconName.text = characterSheet.UnitStat_Name;
         TargetFOV = DefaultFOV;
-
         Current_Unit_State = Unit_States.State_Waiting;
         Current_Unit_Suppression_State = Unit_Suppression_States.State_Waiting;
-
         SetActions();
-
+        //notice
+        //change this
         Default_Reticle = (Resources.Load<Sprite>("KD_Sprites/KD_Reticle_Default"));
         manager_HUD.Reticle.sprite = Default_Reticle;
-
         KD_Global.AssignTeamColorsToUnit(this);
     }
-
-    public void SetCharacter(Character_Master selectedCharacter)
+    //get references to components we need
+    public void SetUpComponents()
     {
-        characterSheet = (Character_Master)ScriptableObject.CreateInstance((selectedCharacter).ToString());
+        aimingNode = GetComponentInChildren<AimingNode>().gameObject;
+        shooting = GetComponent<Shooting>();
+        shooting.unit = this;
+        manager_HUD = FindObjectOfType<Manager_HUD>();
+        CameraAudioListener = playerCamera.GetComponent<AudioListener>();
+        CameraAudioListener.enabled = false;
+        movementPosition = this.transform.position;
+        throwing = GetComponent<Throwing>();
+        throwing.unit = this;
+        throwing.LaunchTransform = DeployableSpawnLocation.transform;
+        throwing.lineRenderer = GetComponent<LineRenderer>();
+        ResetMovement();
     }
-
+    //reset movement for a new turn
+    public void ResetMovement()
+    {
+        movementPointsRemaining = startingMovementPoints;
+        hasNoMovementRemaining = false;
+    }
+    //instance the unit's character sheet
+    public void SetCharacter(KD_Global.Characters selectedCharacter)
+    { 
+        characterSheet = (Character_Master)ScriptableObject.CreateInstance(selectedCharacter.ToString());
+    }
+    //instance the unit's inventory and get references to the heldweapon tip and model
     public virtual void SetItems()
     {
         if (equippedWeapon == null)
@@ -175,24 +199,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
         equippedEquipment.DeployableThrowForce = DeployableThrowForce;
         equippedEquipment.DeployableOwner = this;
     }
-
-    public void SetUpComponents()
+    //calculate the weapons accuracy
+    public virtual void CalculateWeaponStats()
     {
-        //KD_CC = GetComponent<KD_CharacterController>();
-        aimingNode = GetComponentInChildren<AimingNode>().gameObject;
-        shooting = GetComponent<Shooting>(); 
-        shooting.unit = this;
-        manager_HUD = FindObjectOfType<Manager_HUD>();
-        CameraAudioListener = playerCamera.GetComponent<AudioListener>();
-        CameraAudioListener.enabled = false;
-        movementPosition = this.transform.position;
-        throwing = GetComponent<Throwing>();
-        throwing.unit = this;
-        throwing.LaunchTransform = DeployableSpawnLocation.transform;
-        throwing.lineRenderer = GetComponent<LineRenderer>();
-        ResetMovement();
+        //
     }
-
+    //instance the scriptable objects that hold the logic for unit actions
     public void SetActions()
     {
         Unit_Actions[1] = (Action_Master)ScriptableObject.CreateInstance("Action_Basic_Dash");
@@ -210,10 +222,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         AP = Starting_Ap;
     }
-    public virtual void CalculateWeaponStats()
-    {
-        //
-    }
+    
     public virtual void CalculateCarryWeight()
     {
         float CarryCapacity = characterSheet.UnitStat_Fitness / 4;
@@ -226,17 +235,12 @@ public class Unit_Master : MonoBehaviour, IDamagable
     }
     #endregion
 
-    #region Updates
-   
-    #endregion
-
     #region HUD or UI
-    
 
     public void ResetCameraFOV()
     {
         playerCamera.fieldOfView = DefaultFOV;
-        GunCamera.fieldOfView = DefaultFOV;
+        gunCamera.fieldOfView = DefaultFOV;
     }
     public void ScaleCameraFOV()
     {
@@ -244,7 +248,7 @@ public class Unit_Master : MonoBehaviour, IDamagable
         TargetFOV = (int)(DefaultFOV - (DefaultFOV * ((Calculated_WeaponAccuracy * CurrentShotAccuracyModifier) / 100)));
 
         playerCamera.fieldOfView = TargetFOV;
-        GunCamera.fieldOfView = TargetFOV;
+        gunCamera.fieldOfView = TargetFOV;
         //playerCamera.fieldOfView = (int)(DefaultFOV - (DefaultFOV * (Calculated_WeaponAccuracy / 100)));
 
         //TargetFOV = DefaultFOV;
@@ -266,11 +270,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
     //{
     //    NonRotatingCanvas.transform.rotation = Quaternion.identity;
     //}
+
     #endregion
 
-
     #region Combat Methods
-    public void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
+    public virtual void TakeDamage(int Damage, Item_Master.DamageTypes DamageType, string Attacker)
     {
         if (isDead == false)
         {
@@ -298,8 +302,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
             }
         }
     }
-
-
 
     public virtual void TrackSuppressTarget()
     {
@@ -362,19 +364,11 @@ public class Unit_Master : MonoBehaviour, IDamagable
             }
         }
     }
-
+    
     public IEnumerator SuppressionCooldownRoutine()
     {
         yield return new WaitForSeconds(equippedWeapon.FireRate * SuppressionCooldownRate);
         isOnSuppressionCooldown = false;
-    }
-
-    
-
-    public void ResetMovement()
-    {
-        movementPointsRemaining = startingMovementPoints;
-        hasNoMovementRemaining = false;
     }
 
     public virtual void Die(string Attacker)
@@ -435,7 +429,6 @@ public class Unit_Master : MonoBehaviour, IDamagable
     {
         SuppressionCharges = SuppressionCharges + RechargeSuppressionRate;
     }
-
 
     #endregion
 }

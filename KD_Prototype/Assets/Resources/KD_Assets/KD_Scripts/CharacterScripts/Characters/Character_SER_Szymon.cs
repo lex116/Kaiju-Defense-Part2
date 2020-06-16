@@ -12,7 +12,11 @@ public class Character_SER_Szymon : Character_Master
         UnitStat_StartingHitPoints = 24;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
-        UnitStat_Reaction = 97;
+
+        //testing
+        UnitStat_Reaction = 99;
+        //UnitStat_Reaction = 97;
+
         UnitStat_Accuracy = 71;
         UnitStat_Willpower = 60;
         UnitStat_Fitness = 64;
@@ -21,7 +25,10 @@ public class Character_SER_Szymon : Character_Master
         UnitStat_StartingNerve = 63;
         //startingMovementPoints;
 
-        selectedWeapon = Weapons.Weapon_Human_Pistol;
+        //testing
+        //selectedWeapon = Weapons.Weapon_Human_Pistol;
+        selectedWeapon = Weapons.Weapon_Human_SubMachineGun;
+
         selectedEquipment = Equipment.Equipment_Human_FragGrenadePack;
         selectedArmor = Armors.Armor_Human_Uniform;
 

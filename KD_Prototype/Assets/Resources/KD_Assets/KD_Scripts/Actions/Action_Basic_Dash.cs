@@ -20,7 +20,6 @@ public class Action_Basic_Dash : Action_Master
         Action_Owner.ResetMovement();
         Action_Owner.CalculateCarryWeight();
             
-          
         // NOTICE
         //Action_Owner.ToggleMovingState();
     }

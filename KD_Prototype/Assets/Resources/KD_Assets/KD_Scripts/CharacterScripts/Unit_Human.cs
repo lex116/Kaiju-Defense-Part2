@@ -6,22 +6,20 @@ using UnityEngine.UI;
 
 public class Unit_Human : Unit_Master
 {
-
-
-    [Header("Human Fields")]
+    //[Header("Human Fields")]
 
     #region Unit Stats
-    public int UnitStat_Level;
-    public int UnitStat_ExperiencePoints;
+    //public int UnitStat_Level;
+    //public int UnitStat_ExperiencePoints;
 
-    public enum PilotClass
-    {
-        Passion,
-        Skillful,
-        Tactical
-    }
+    //public enum PilotClass
+    //{
+    //    Passion,
+    //    Skillful,
+    //    Tactical
+    //}
 
-    public PilotClass SelectedPilotClass;
+    //public PilotClass SelectedPilotClass;
 
     //This is where knowledges will go at a later time >>>>
     #endregion

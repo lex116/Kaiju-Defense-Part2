@@ -4,6 +4,24 @@ using UnityEngine;
 
 static public class KD_Global 
 {
+    static public string filePath_Prefab = "KD_Assets/KD_Prefabs/";
+    static public string filePath_Materials = "KD_Assets/Materials/Skin_";
+    static public string filePath_Characters = "KD_Assets/KD_Scripts/CharacterScripts/Characters/";
+    //static public string filePath_Blueprint_Unit = "Blueprint_Unit_";
+
+    public enum Blueprint_Units
+    {
+        Blueprint_Unit_Samuel,
+        Blueprint_Unit_Szymon,
+        Blueprint_Unit_Noah
+    }
+                                                 
+    public enum UnitPrefabType
+    {
+        Unit_Human_Prefab,
+        Unit_Mecha_Prefab,
+        Unit_Tank_Prefab
+    }
     public enum FactionTag
     {
         UTF,
@@ -44,9 +62,12 @@ static public class KD_Global
     static public Sprite[] MapUnitIcons;
     static public Color[] MapIconColors =
     {
+        Color.gray,
         Color.blue,
-        Color.yellow,
         Color.red,
+        Color.cyan,
+        Color.green,
+        Color.yellow,
         Color.white
     };
 
@@ -60,24 +81,23 @@ static public class KD_Global
         Unit_Master tempUnitScript = null;
         GameObject tempUnitObject = null;
 
-        tempUnitObject = Object.Instantiate(unitToSpawn.unitObject, spawnPoint.transform.position, spawnPoint.transform.rotation);
+        tempUnitObject = GameObject.Instantiate(Resources.Load<GameObject>(filePath_Prefab + unitToSpawn.unitPrefabType), 
+            spawnPoint.transform.position, spawnPoint.transform.rotation);
         tempUnitScript = tempUnitObject.GetComponent<Unit_Master>();
-        tempUnitScript.Setup(unitToSpawn.infantrySheet, unitToSpawn.vehicleSheet);
+        tempUnitScript. Setup(unitToSpawn.infantrySheet, unitToSpawn.vehicleSheet);
     }
 
     static public void AssignTeamColorsToUnit(Unit_Master UnitToColor)
     {
         foreach (MeshRenderer x in UnitToColor.UnitSkins)
         {
-            string filepath = "KD_Assets/Materials/" + UnitToColor.characterSheet.UnitStat_FactionTag.ToString();
+            string filepath = filePath_Materials + UnitToColor.characterSheet.UnitStat_FactionTag.ToString();
 
             //x.material = Skins[(int)UnitToColor.characterSheet.UnitStat_FactionTag];
-            x.material = Resources.Load<Material>(filepath);
-                
+            x.material = Resources.Load<Material>(filepath);   
         }
         
-        UnitToColor.MapIconHighlight.color = MapIconColors[(int)UnitToColor.characterSheet.UnitStat_FactionTag];
-        UnitToColor.UnitIcon.sprite = MapUnitIcons[(int)UnitToColor.characterSheet.unitType];
+        //UnitToColor.MapIconHighlight.color = MapIconColors[(int)UnitToColor.characterSheet.UnitStat_FactionTag];
+        //UnitToColor.UnitIcon.sprite = MapUnitIcons[(int)UnitToColor.characterSheet.unitType];
     }
-
 }

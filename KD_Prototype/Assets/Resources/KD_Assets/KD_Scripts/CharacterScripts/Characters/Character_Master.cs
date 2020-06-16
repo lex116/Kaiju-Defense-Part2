@@ -35,7 +35,8 @@ public class Character_Master : ScriptableObject
         Weapon_Human_MachineGun,
         Weapon_Vehicle_MachineGun,
         Weapon_Human_AntiArmorRifle,
-        Weapon_Vehicle_Cannon
+        Weapon_Vehicle_Cannon,
+        Weapon_Human_SubMachineGun
     }
     internal Weapons selectedWeapon;
 

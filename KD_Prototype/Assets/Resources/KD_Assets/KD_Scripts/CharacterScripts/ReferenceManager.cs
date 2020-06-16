@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ReferenceManager : MonoBehaviour {
+public class ReferenceManager : MonoBehaviour
+{
     [SerializeField]
     public Image HitBoxImage;
     [SerializeField]
     public GameObject SelectShotTypePanel;
 }
+
+//no references no used logic delete later

@@ -12,7 +12,11 @@ public class Character_SCRAPS_Noah : Character_Master
         UnitStat_StartingHitPoints = 26;
         //UnitStat_StartingActionPoints;
         //UnitStat_ActionPoints;
-        UnitStat_Reaction = 82;
+
+        //testing
+        UnitStat_Reaction = 1;
+        //UnitStat_Reaction = 82;
+
         UnitStat_Accuracy = 76;
         UnitStat_Willpower = 71;
         UnitStat_Fitness = 62;

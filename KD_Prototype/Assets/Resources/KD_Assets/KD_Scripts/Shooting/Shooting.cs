@@ -14,9 +14,9 @@ public class Shooting : MonoBehaviour
 
     public bool isFiring;
 
-    public GameObject DamageCube;
-    public GameObject DamageSphere;
-    public GameObject MissShotEffect;
+    string dmgCubePath = "DamageCube";
+    string dmgSpherePath = "DamageSphere";
+    string missShotEffectPath = "ShotMissEffect";
 
     internal AudioSource audioSource;
     float audioSource_Pitch_Min = 0.75f;
@@ -58,9 +58,7 @@ public class Shooting : MonoBehaviour
 
     public void TestShooting(float accMod)
     {
-        //NOTICE
-        //RoundManager RM = FindObjectOfType<RoundManager>();
-        //RM.AddNotificationToFeed(unit.characterSheet.UnitStat_Name + " takes a shot!");
+        unit.manager_HUD.AddNotificationToFeed(unit.characterSheet.UnitStat_Name + " takes a shot!");
 
         currentWeapon = unit.equippedWeapon;
 
@@ -123,7 +121,8 @@ public class Shooting : MonoBehaviour
                     else 
                     {
                         Vector3 MissLocation = this.transform.position + (DirectionToFire * currentWeapon.Range);
-                        GameObject missEffect = Instantiate(MissShotEffect, MissLocation, new Quaternion(0, 0, 0, 0));
+                        GameObject missEffect = Instantiate(Resources.Load<GameObject>(KD_Global.filePath_Prefab + 
+                            missShotEffectPath), MissLocation, new Quaternion(0, 0, 0, 0));
 
                         MissEffectScript missEffectScript = missEffect.GetComponent<MissEffectScript>();
 
@@ -179,7 +178,8 @@ public class Shooting : MonoBehaviour
                 objectToDamage.TakeDamage(unit.equippedWeapon.Damage, unit.equippedWeapon.damageType, unit.characterSheet.UnitStat_Name);
             }
 
-            GameObject dmgCube = Instantiate(DamageCube, objectToHit.point, new Quaternion(0, 0, 0, 0));
+            GameObject dmgCube = Instantiate(Resources.Load<GameObject>(KD_Global.filePath_Prefab + dmgCubePath), 
+                objectToHit.point, new Quaternion(0, 0, 0, 0));
 
             DamageEffect dmgCubeScript = dmgCube.GetComponent<DamageEffect>();
 
@@ -222,7 +222,8 @@ public class Shooting : MonoBehaviour
             }
         }
 
-        GameObject dmgSphere = Instantiate(DamageSphere, objectToHit.point, new Quaternion(0, 0, 0, 0));
+        GameObject dmgSphere = Instantiate(Resources.Load<GameObject>(KD_Global.filePath_Prefab + dmgSpherePath), 
+            objectToHit.point, new Quaternion(0, 0, 0, 0));
 
         DamageEffect dmgCubeScript = dmgSphere.GetComponent<DamageEffect>();
 
@@ -246,4 +247,4 @@ public class Shooting : MonoBehaviour
         audioSource.pitch = 1;
         audioSource.Play();
     }
-}
+} 

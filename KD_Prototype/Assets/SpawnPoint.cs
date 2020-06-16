@@ -5,16 +5,15 @@ using UnityEngine;
 public class SpawnPoint : MonoBehaviour
 {
     //might use later
-    enum owner
+    public enum owner
     {
-        attackers,
-        defenders
+        player,
+        enemy
     }
 
     [SerializeField]
-    owner spawnOwner;
+    public owner spawnOwner;
 
     [SerializeField]
-    int spawnID; 
-
+    public int spawnID; 
 }

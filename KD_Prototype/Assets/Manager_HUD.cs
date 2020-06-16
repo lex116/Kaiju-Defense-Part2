@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class Manager_HUD : MonoBehaviour
 {
+    public Camera mapCamera;
     public List<Unit_Master> hud_InitiativeOrder = new List<Unit_Master>();
     //public Unit_Master hud_SelectedUnit;
     public Overlord_Master hud_SelectedOverlord;
@@ -27,7 +28,7 @@ public class Manager_HUD : MonoBehaviour
     internal float HUD_Player_UpdateRate = .02f;
 
     public GameObject PlayerHUD;
-    public GameObject PlayerTargetHUD;
+
 
     public Image HUD_Player_staminaBar;
     public Image HUD_Player_healthBar;
@@ -74,6 +75,8 @@ public class Manager_HUD : MonoBehaviour
     internal float HUD_Player_TargetHp;
     internal float HUD_Player_DisplayNerve;
     internal float HUD_Player_TargetNerve;
+
+    public GameObject PlayerTargetHUD;
 
     internal float HUD_Player_Target_DisplayHp;
     internal float HUD_Player_Target_TargetHp;
@@ -145,11 +148,13 @@ public class Manager_HUD : MonoBehaviour
     public List<Text> KillFeedBoxes = new List<Text>();
 
     public RawImage MiniMap;
+
+    public Button activateUnitButton;
     #endregion
 
     private void Awake()
     {
-        ExitApplicationPanel.SetActive(false);
+        //ExitApplicationPanel.SetActive(false);
     }
 
     public void HUD_StrategicModeToggle(bool toggle)
